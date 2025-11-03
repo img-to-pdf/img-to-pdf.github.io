@@ -1,1 +1,298 @@
-document.addEventListener('DOMContentLoaded',function(){const fileInput=document.getElementById('fileInput');const dropZone=document.getElementById('dropZone');const convertBtn=document.getElementById('convertBtn');const resetBtn=document.getElementById('resetBtn');const preview=document.getElementById('preview');const canvas=document.getElementById('canvas');const ctx=canvas.getContext('2d');const origMeta=document.getElementById('origMeta');const newMeta=document.getElementById('newMeta');const previewPlaceholder=document.getElementById('previewPlaceholder');const downloadLink=document.getElementById('downloadLink');const openTab=document.getElementById('openTab');const loadingIndicator=document.getElementById('loadingIndicator');const successMessage=document.getElementById('successMessage');const pageSize=document.getElementById('pageSize');const customSizeInputs=document.getElementById('customSizeInputs');const customWidth=document.getElementById('customWidth');const customHeight=document.getElementById('customHeight');const orientation=document.getElementById('orientation');const margin=document.getElementById('margin');const marginLabel=document.getElementById('marginLabel');const quality=document.getElementById('quality');const qualityLabel=document.getElementById('qualityLabel');const compression=document.getElementById('compression');const pdfTitle=document.getElementById('pdfTitle');const faqQuestions=document.querySelectorAll('.faq-question');faqQuestions.forEach(question=>{question.addEventListener('click',()=>{const answer=question.nextElementSibling;const isVisible=answer.style.display==='block';document.querySelectorAll('.faq-answer').forEach(ans=>{ans.style.display='none';});answer.style.display=isVisible ? 'none' : 'block';});});margin.addEventListener('input',()=>{marginLabel.textContent=`(${margin.value}mm)`;});quality.addEventListener('input',()=>{qualityLabel.textContent=`(${quality.value})`;});pageSize.addEventListener('change',()=>{if(pageSize.value==='custom'){customSizeInputs.style.display='block';}else{customSizeInputs.style.display='none';}});fileInput.addEventListener('change',handleFileSelect);dropZone.addEventListener('click',()=>fileInput.click());['dragenter','dragover','dragleave','drop'].forEach(eventName=>{dropZone.addEventListener(eventName,preventDefaults,false);});function preventDefaults(e){e.preventDefault();e.stopPropagation();}['dragenter','dragover'].forEach(eventName=>{dropZone.addEventListener(eventName,highlight,false);});['dragleave','drop'].forEach(eventName=>{dropZone.addEventListener(eventName,unhighlight,false);});function highlight(){dropZone.classList.add('active');}function unhighlight(){dropZone.classList.remove('active');}dropZone.addEventListener('drop',handleDrop,false);function handleDrop(e){const dt=e.dataTransfer;const files=dt.files;handleFiles(files);}function handleFileSelect(e){const files=e.target.files;handleFiles(files);}function handleFiles(files){if(files.length>0){const file=files[0];if(file.type.match('image.*')){const reader=new FileReader();reader.onload=function(e){const img=new Image();img.onload=function(){preview.src=e.target.result;preview.style.display='block';previewPlaceholder.style.display='none';origMeta.textContent=`Original: ${img.width}× ${img.height}px`;origMeta.style.display='block';convertBtn.disabled=false;updatePreviewDimensions(img);};img.src=e.target.result;};reader.readAsDataURL(file);}else{alert('Please select a valid image file(JPG,PNG,WEBP,etc.)');}}}function updatePreviewDimensions(img){const pageSizeValue=pageSize.value;const orientationValue=orientation.value;const marginValue=parseInt(margin.value);let pageWidth,pageHeight;if(pageSizeValue==='custom'){pageWidth=parseInt(customWidth.value)|| 210;pageHeight=parseInt(customHeight.value)|| 297;}else{const sizes={a4: [210,297],letter: [216,279],legal: [216,356],a3: [297,420],a5: [148,210]};[pageWidth,pageHeight]=sizes[pageSizeValue];}if(orientationValue==='landscape'){[pageWidth,pageHeight]=[pageHeight,pageWidth];}const mmToPx=96/25.4;const pageWidthPx=pageWidth*mmToPx;const pageHeightPx=pageHeight*mmToPx;const marginPx=marginValue*mmToPx;const availableWidth=pageWidthPx-(2*marginPx);const availableHeight=pageHeightPx-(2*marginPx);const scaleX=availableWidth/img.width;const scaleY=availableHeight/img.height;const scale=Math.min(scaleX,scaleY,1);const finalWidth=img.width*scale;const finalHeight=img.height*scale;newMeta.textContent=`In PDF: ${Math.round(finalWidth)}× ${Math.round(finalHeight)}px`;newMeta.style.display='block';}[pageSize,orientation,margin].forEach(element=>{element.addEventListener('change',updatePreviewFromImage);});[customWidth,customHeight].forEach(element=>{element.addEventListener('input',updatePreviewFromImage);});function updatePreviewFromImage(){if(preview.style.display !=='none'){const img=new Image();img.onload=function(){updatePreviewDimensions(img);};img.src=preview.src;}}convertBtn.addEventListener('click',convertToPdf);function convertToPdf(){if(preview.style.display==='none'){alert('Please select an image first');return;}loadingIndicator.style.display='block';successMessage.style.display='none';setTimeout(()=>{loadingIndicator.style.display='none';successMessage.style.display='block';downloadLink.style.display='inline-flex';openTab.style.display='inline-flex';downloadLink.href='#';openTab.href='#';},1500);}resetBtn.addEventListener('click',resetConverter);function resetConverter(){fileInput.value='';preview.style.display='none';previewPlaceholder.style.display='block';origMeta.style.display='none';newMeta.style.display='none';downloadLink.style.display='none';openTab.style.display='none';loadingIndicator.style.display='none';successMessage.style.display='none';convertBtn.disabled=true;pageSize.value='a4';customSizeInputs.style.display='none';orientation.value='portrait';margin.value=10;marginLabel.textContent='(10 mm)';quality.value=0.9;qualityLabel.textContent='(0.90)';compression.value='high';pdfTitle.value='';}});
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const convertBtn = document.getElementById('convertBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const preview = document.getElementById('preview');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const origMeta = document.getElementById('origMeta');
+    const newMeta = document.getElementById('newMeta');
+    const previewPlaceholder = document.getElementById('previewPlaceholder');
+    const downloadLink = document.getElementById('downloadLink');
+    const openTab = document.getElementById('openTab');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const successMessage = document.getElementById('successMessage');
+    const pageSize = document.getElementById('pageSize');
+    const customSizeInputs = document.getElementById('customSizeInputs');
+    const customWidth = document.getElementById('customWidth');
+    const customHeight = document.getElementById('customHeight');
+    const orientation = document.getElementById('orientation');
+    const margin = document.getElementById('margin');
+    const marginLabel = document.getElementById('marginLabel');
+    const quality = document.getElementById('quality');
+    const qualityLabel = document.getElementById('qualityLabel');
+    const compression = document.getElementById('compression');
+    const pdfTitle = document.getElementById('pdfTitle');
+    
+    // FAQ functionality
+    const faqQuestions = document.querySelectorAll('.faq-question');
+    faqQuestions.forEach(question => {
+        question.addEventListener('click', () => {
+            const answer = question.nextElementSibling;
+            const isVisible = answer.style.display === 'block';
+            document.querySelectorAll('.faq-answer').forEach(ans => {
+                ans.style.display = 'none';
+            });
+            answer.style.display = isVisible ? 'none' : 'block';
+        });
+    });
+
+    margin.addEventListener('input', () => {
+        marginLabel.textContent = `(${margin.value}mm)`;
+    });
+
+    quality.addEventListener('input', () => {
+        qualityLabel.textContent = `(${quality.value})`;
+    });
+
+    pageSize.addEventListener('change', () => {
+        if (pageSize.value === 'custom') {
+            customSizeInputs.style.display = 'block';
+        } else {
+            customSizeInputs.style.display = 'none';
+        }
+    });
+
+    fileInput.addEventListener('change', handleFileSelect);
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight() {
+        dropZone.classList.add('active');
+    }
+
+    function unhighlight() {
+        dropZone.classList.remove('active');
+    }
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }
+
+    function handleFileSelect(e) {
+        const files = e.target.files;
+        handleFiles(files);
+    }
+
+    function handleFiles(files) {
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.type.match('image.*')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                        previewPlaceholder.style.display = 'none';
+                        origMeta.textContent = `Original: ${img.width} × ${img.height}px`;
+                        origMeta.style.display = 'block';
+                        convertBtn.disabled = false;
+                        updatePreviewDimensions(img);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert('Please select a valid image file (JPG, PNG, WEBP, etc.)');
+            }
+        }
+    }
+
+    function updatePreviewDimensions(img) {
+        const pageSizeValue = pageSize.value;
+        const orientationValue = orientation.value;
+        const marginValue = parseInt(margin.value);
+        let pageWidth, pageHeight;
+
+        if (pageSizeValue === 'custom') {
+            pageWidth = parseInt(customWidth.value) || 210;
+            pageHeight = parseInt(customHeight.value) || 297;
+        } else {
+            const sizes = {
+                a4: [210, 297],
+                letter: [216, 279],
+                legal: [216, 356],
+                a3: [297, 420],
+                a5: [148, 210]
+            };
+            [pageWidth, pageHeight] = sizes[pageSizeValue];
+        }
+
+        if (orientationValue === 'landscape') {
+            [pageWidth, pageHeight] = [pageHeight, pageWidth];
+        }
+
+        const mmToPx = 96 / 25.4;
+        const pageWidthPx = pageWidth * mmToPx;
+        const pageHeightPx = pageHeight * mmToPx;
+        const marginPx = marginValue * mmToPx;
+        const availableWidth = pageWidthPx - (2 * marginPx);
+        const availableHeight = pageHeightPx - (2 * marginPx);
+
+        const scaleX = availableWidth / img.width;
+        const scaleY = availableHeight / img.height;
+        const scale = Math.min(scaleX, scaleY, 1);
+
+        const finalWidth = img.width * scale;
+        const finalHeight = img.height * scale;
+
+        newMeta.textContent = `In PDF: ${Math.round(finalWidth)} × ${Math.round(finalHeight)}px`;
+        newMeta.style.display = 'block';
+    }
+
+    [pageSize, orientation, margin].forEach(element => {
+        element.addEventListener('change', updatePreviewFromImage);
+    });
+
+    [customWidth, customHeight].forEach(element => {
+        element.addEventListener('input', updatePreviewFromImage);
+    });
+
+    function updatePreviewFromImage() {
+        if (preview.style.display !== 'none') {
+            const img = new Image();
+            img.onload = function() {
+                updatePreviewDimensions(img);
+            };
+            img.src = preview.src;
+        }
+    }
+
+    convertBtn.addEventListener('click', convertToPdf);
+
+    function convertToPdf() {
+        if (preview.style.display === 'none') {
+            alert('Please select an image first');
+            return;
+        }
+
+        loadingIndicator.style.display = 'block';
+        successMessage.style.display = 'none';
+
+        // Create PDF using jsPDF
+        const img = new Image();
+        img.onload = function() {
+            // Get PDF settings
+            const pageSizeValue = pageSize.value;
+            const orientationValue = orientation.value;
+            const marginValue = parseInt(margin.value);
+            const qualityValue = parseFloat(quality.value);
+            const title = pdfTitle.value || 'converted-image';
+            
+            let pageWidth, pageHeight;
+
+            if (pageSizeValue === 'custom') {
+                pageWidth = parseInt(customWidth.value) || 210;
+                pageHeight = parseInt(customHeight.value) || 297;
+            } else {
+                const sizes = {
+                    a4: [210, 297],
+                    letter: [216, 279],
+                    legal: [216, 356],
+                    a3: [297, 420],
+                    a5: [148, 210]
+                };
+                [pageWidth, pageHeight] = sizes[pageSizeValue];
+            }
+
+            if (orientationValue === 'landscape') {
+                [pageWidth, pageHeight] = [pageHeight, pageWidth];
+            }
+
+            // Create PDF
+            const pdf = new jsPDF({
+                orientation: orientationValue,
+                unit: 'mm',
+                format: pageSizeValue === 'custom' ? [pageWidth, pageHeight] : pageSizeValue
+            });
+
+            // Calculate image dimensions to fit within margins
+            const availableWidth = pageWidth - (2 * marginValue);
+            const availableHeight = pageHeight - (2 * marginValue);
+
+            const scaleX = availableWidth / (img.width / (96 / 25.4)); // Convert px to mm
+            const scaleY = availableHeight / (img.height / (96 / 25.4)); // Convert px to mm
+            const scale = Math.min(scaleX, scaleY, 1);
+
+            const finalWidth = (img.width / (96 / 25.4)) * scale;
+            const finalHeight = (img.height / (96 / 25.4)) * scale;
+
+            // Center the image on the page
+            const x = marginValue + (availableWidth - finalWidth) / 2;
+            const y = marginValue + (availableHeight - finalHeight) / 2;
+
+            // Add image to PDF
+            pdf.addImage(img, 'JPEG', x, y, finalWidth, finalHeight, null, 'FAST');
+
+            // Generate PDF blob
+            const pdfBlob = pdf.output('blob');
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+
+            // Update download links
+            downloadLink.href = pdfUrl;
+            downloadLink.download = `${title}.pdf`;
+            openTab.href = pdfUrl;
+            openTab.target = '_blank';
+
+            // Hide loading and show success with green download button
+            loadingIndicator.style.display = 'none';
+            successMessage.style.display = 'block';
+            downloadLink.style.display = 'inline-flex';
+            openTab.style.display = 'inline-flex';
+
+            // Add green button styling
+            downloadLink.classList.add('btn-success');
+        };
+
+        img.src = preview.src;
+    }
+
+    resetBtn.addEventListener('click', resetConverter);
+
+    function resetConverter() {
+        fileInput.value = '';
+        preview.style.display = 'none';
+        previewPlaceholder.style.display = 'block';
+        origMeta.style.display = 'none';
+        newMeta.style.display = 'none';
+        downloadLink.style.display = 'none';
+        openTab.style.display = 'none';
+        loadingIndicator.style.display = 'none';
+        successMessage.style.display = 'none';
+        convertBtn.disabled = true;
+        pageSize.value = 'a4';
+        customSizeInputs.style.display = 'none';
+        orientation.value = 'portrait';
+        margin.value = 10;
+        marginLabel.textContent = '(10 mm)';
+        quality.value = 0.9;
+        qualityLabel.textContent = '(0.90)';
+        compression.value = 'high';
+        pdfTitle.value = '';
+        
+        // Remove green button styling
+        downloadLink.classList.remove('btn-success');
+    }
+});
