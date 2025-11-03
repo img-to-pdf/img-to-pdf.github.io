@@ -120,6 +120,58 @@
       --radius: 8px;
       --radius-lg: 12px;
     }
+    .seo {
+margin-top: 60px;
+padding: 40px 20px;
+background: var(--primary-light, #eef2ff);
+border-top: 1px solid var(--border-color, #e1e5e9);
+border-radius: var(--radius-lg, 12px) var(--radius-lg, 12px) 0 0;
+box-shadow: var(--shadow-light, 0 2px 8px rgba(0, 0, 0, 0.05));
+color: var(--text-color, #333);
+font-size: 15px;
+line-height: 1.7;
+}
+
+.seo h2 {
+font-size: 1.4rem;
+color: var(--primary-color, #4361ee);
+margin-bottom: 15px;
+text-align: center;
+font-weight: 600;
+}
+
+.seo p {
+margin-bottom: 15px;
+max-width: 1000px;
+margin-left: auto;
+margin-right: auto;
+text-align: justify;
+}
+
+.seo strong {
+color: var(--secondary-color, #7209b7);
+font-weight: 600;
+}
+
+.seo a {
+color: var(--primary-color, #4361ee);
+text-decoration: underline;
+}
+
+.seo a:hover {
+color: var(--primary-dark, #3a56d4);
+}
+
+@media (max-width: 768px) {
+.seo {
+padding: 25px 15px;
+font-size: 14px;
+}
+
+.seo h2 {
+font-size: 1.2rem;
+}
+}
   </style>
 </head>
 <header><div class=container><div class=header-content><a class=site-name href=/ >Image to PDF Converter</a></div></div></header><div class=container><div class=breadcrumbs><a href=/ >Home</a> <span>></span> <a href="https://img-to-pdf.github.io/">Image to PDF Converter</a></div></div><main class=container><section><h1>Convert Images to PDF</h1><p class=tool-description>Transform your images into professional PDF documents with our secure, browser-based converter. Your files never leave your device.<div class=tool-container><div class=controls><section class=left><div class=drop-zone id=dropZone><strong>Drag & Drop your image here</strong><p class=meta>Supports JPG, PNG, WEBP, and more</p><span class=meta>or <label for=fileInput class="btn btn-outline"style=margin:0>Select File</label></span> <input id=fileInput type=file accept=image/*></div><div><div class=field><label for=pageSize>Page Size</label> <select id=pageSize><option value=a4>A4 (210 × 297 mm)<option value=letter>Letter (216 × 279 mm)<option value=legal>Legal (216 × 356 mm)<option value=a3>A3 (297 × 420 mm)<option value=a5>A5 (148 × 210 mm)<option value=custom>Custom Size</select></div><div class=field style=display:none id=customSizeInputs><div class=row><div style=flex:1><label for=customWidth>Width (mm)</label> <input id=customWidth type=number min=1 class=small-input placeholder=210></div><div style=flex:1><label for=customHeight>Height (mm)</label> <input id=customHeight type=number min=1 class=small-input placeholder=297></div></div></div><div class=field><label for=orientation>Orientation</label> <select id=orientation><option value=portrait>Portrait<option value=landscape>Landscape</select></div><div class=field><label for=margin>Margin <span id=marginLabel>(10 mm)</span></label> <input id=margin type=range min=0 max=50 value=10><p class=field-hint>Adjust the margin around your image in the PDF</div><div class=field><label for=quality>Image Quality <span id=qualityLabel>(0.90)</span></label> <input id=quality type=range min=0.1 max=1 value=0.9 step=0.05><p class=field-hint>Higher quality results in larger file sizes</div><div class=field><label for=compression>PDF Compression</label> <select id=compression><option value=none>None (Highest Quality)<option value=medium>Medium<option value=high selected>High (Smaller File Size)</select></div><div class=field><label for=pdfTitle>PDF Title (Optional)</label> <input id=pdfTitle placeholder="Enter PDF title"><p class=field-hint>This will be set as the document title in the PDF metadata</div><div class=loading id=loadingIndicator><div class=spinner></div><p>Converting your image to PDF...</div><div class=success-message id=successMessage><p>✅ Your PDF has been successfully created! Click the download button to save it.</div><div class=actions><button class=btn id=convertBtn disabled><span>Convert to PDF</span></button> <button class="btn btn-outline"id=resetBtn><span>Reset</span></button></div></div></section><aside class=right><div class=preview-container><div class=preview><canvas height=360 id=canvas style=display:none width=640></canvas><img alt="Image preview"id=preview style=display:none><div id=previewPlaceholder><p style=color:var(--lighter-text);text-align:center>Your image preview will appear here</div><div class=meta style=display:none id=origMeta></div><div class=meta style=display:none id=newMeta></div><div style=display:flex;gap:8px;margin-top:10px><a class=btn id=downloadLink style=display:none download><span>Download PDF</span> </a><a class="btn btn-outline"id=openTab style=display:none rel=noopener target=_blank><span>Open PDF</span></a></div></div></div></aside></div></div></section><section><h2>Why Use This Image to PDF Converter?</h2><div class=privacy-container><p>Our Image to PDF Converter offers several advantages over other online tools:<div class=privacy-features><div class=feature><div class=feature-icon>🔒</div><div><h3>Complete Privacy</h3><p>Your images are processed entirely in your browser and never uploaded to any server.</div></div><div class=feature><div class=feature-icon>⚡</div><div><h3>Fast Processing</h3><p>Convert images to PDF instantly without waiting for file uploads and downloads.</div></div><div class=feature><div class=feature-icon>🎛️</div><div><h3>Full Customization</h3><p>Control page size, orientation, margins, quality, and compression settings.</div></div><div class=feature><div class=feature-icon>📱</div><div><h3>Device Compatibility</h3><p>Works on all devices - desktop, tablet, and mobile browsers.</div></div></div></div></section><div class=steps><div class=step><div class=step-number>1</div><div class=step-text>Upload Image</div></div><div class=step><div class=step-number>2</div><div class=step-text>Customize Settings</div></div><div class=step><div class=step-number>3</div><div class=step-text>Download PDF</div></div></div><section><h2>How This Image to PDF Converter Works</h2><div class=privacy-container><p>Our converter uses a simple three-step process:<ol style=padding-left:20px;margin-top:15px><li style=margin-bottom:10px><strong>Upload Your Image:</strong> Select an image file from your device or drag and drop it into the upload area.<li style=margin-bottom:10px><strong>Customize Settings:</strong> Adjust page size, orientation, margins, and quality settings to your preference.<li style=margin-bottom:10px><strong>Convert and Download:</strong> Click the convert button and download your PDF file instantly.</ol><p style=margin-top:15px>The entire process happens locally in your browser using JavaScript, ensuring your files remain private and secure.</div></section><section><h2>Your Privacy Matters</h2><div class=privacy-container><p>We take your privacy seriously. Unlike other online converters, our tool processes your images entirely in your browser using JavaScript. This means:<ul style=padding-left:20px;margin-top:15px><li style=margin-bottom:10px>Your images are never uploaded to any server<li style=margin-bottom:10px>No one else can access your files<li style=margin-bottom:10px>Your data remains 100% on your device<li style=margin-bottom:10px>The conversion happens locally with no internet connection required after page load</ul><p style=margin-top:15px>This site uses HTTPS encryption to ensure secure communication between your browser and our server during the initial page load. Once loaded, all image processing happens offline in your browser.</div></section><section><h2>Frequently Asked Questions</h2><div class=faq-container><div class=faq-item><div class=faq-question>What image formats are supported? <span>+</span></div><div class=faq-answer style=display:none>Our converter supports all common image formats including JPG, JPEG, PNG, WEBP, BMP, and GIF.</div></div><div class=faq-item><div class=faq-question>Is there a file size limit? <span>+</span></div><div class=faq-answer style=display:none>There's no specific file size limit, but very large images may take longer to process depending on your device's capabilities.</div></div><div class=faq-item><div class=faq-question>Can I convert multiple images to one PDF? <span>+</span></div><div class=faq-answer style=display:none>Currently, our tool converts one image at a time. For multiple images, you would need to convert them individually and then combine the PDFs using a separate tool.</div></div><div class=faq-item><div class=faq-question>Does this work on mobile devices? <span>+</span></div><div class=faq-answer style=display:none>Yes, our Image to PDF Converter works on all modern mobile browsers including Chrome, Safari, and Firefox on both iOS and Android devices.</div></div><div class=faq-item><div class=faq-question>Are my images stored anywhere? <span>+</span></div><div class=faq-answer style=display:none>No, your images are never stored on any server. All processing happens locally in your browser, and the files are deleted from memory once you close the page or reset the tool.</div></div><div class=faq-item><div class=faq-question>What happens if I lose internet connection during conversion? <span>+</span></div><div class=faq-answer style=display:none>Since all processing happens in your browser, you can continue to use the converter even without an internet connection after the initial page load.</div></div></div></section></main><section class="seo">
