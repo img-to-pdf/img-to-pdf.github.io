@@ -7,287 +7,345 @@
   <meta name="description" content="Convert multiple images to a single PDF in your browser. Drag & drop, reorder, import by URL, set page size/orientation/margins, and download — no uploads." />
   <meta name="keywords" content="image to pdf, jpg to pdf, png to pdf, multi-image pdf, convert images to pdf, client-side pdf" />
   <link rel="canonical" href="https://img-to-pdf.github.io/" />
-
-  <!-- OpenGraph / Twitter -->
   <meta property="og:title" content="Image → PDF: Multi-image Converter (Offline)" />
-  <meta property="og:description" content="Convert multiple images to a single PDF in your browser. Drag & drop, reorder, import by URL, set page size/orientation/margins, and download — no uploads." />
+  <meta property="og:description" content="Convert multiple images to a single PDF in your browser. Drag & drop, import URLs, reorder, and download." />
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
-
-  <!-- JSON-LD (FAQ + WebApp) -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "Image → PDF (Multi-image Converter)",
-    "url": "https://img-to-pdf.github.io/",
-    "description": "Convert multiple images to a single PDF in the browser. Drag & drop, import URLs, reorder, and download.",
-    "applicationCategory": "UtilityApplication",
-    "offers": {"@type":"Offer","price":"0","priceCurrency":"USD"}
-  }
-  </script>
-
-  <!-- Tailwind (CDN) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4f46e5">
+  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Libraries -->
-  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-
   <style>
-    /* small extra styles on top of Tailwind */
     .dropzone {
       background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 8px);
     }
     .thumb {
-      max-height: 84px;
+      height: 72px;
+      width: 96px;
       object-fit: cover;
       border-radius: 6px;
       border: 1px solid #e5e7eb;
     }
+    .skeleton {
+      background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 37%, #f3f4f6 63%);
+      background-size: 400% 100%;
+      animation: shine 1.4s ease infinite;
+    }
+    @keyframes shine { 0%{background-position:200% 0}100%{background-position:-200% 0} }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen">
 
-  <header class="bg-white shadow">
-    <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+<header class="bg-white shadow">
+  <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="h-10 w-10 rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl">📄</div>
       <div>
-        <a href="#" class="flex items-center gap-3">
-          <div class="h-10 w-10 rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl">📄</div>
-          <div>
-            <h1 class="text-lg font-semibold">Image → PDF</h1>
-            <p class="text-xs text-gray-500">Multi-image PDF conversion — runs entirely in your browser</p>
-          </div>
-        </a>
+        <h1 class="text-lg font-semibold">Image → PDF</h1>
+        <p class="text-xs text-gray-500">Multi-image PDF converter — runs in your browser • <a class="text-indigo-600" href="https://img-to-pdf.github.io/" target="_blank" rel="noopener">img-to-pdf.github.io</a></p>
       </div>
-      <nav class="text-sm text-gray-600">
-        <a class="mr-4" href="#features">Features</a>
-        <a class="mr-4" href="#faq">FAQ</a>
-      </nav>
     </div>
-  </header>
+    <nav class="text-sm text-gray-600">
+      <a class="mr-4" href="#features">Features</a>
+      <a class="mr-4" href="#faq">FAQ</a>
+    </nav>
+  </div>
+</header>
 
-  <main class="container mx-auto px-4 py-8">
-    <section class="grid md:grid-cols-3 gap-6">
-      <!-- Left: controls -->
-      <div class="md:col-span-2 space-y-4">
-        <div id="dropZone" class="dropzone rounded-lg border-2 border-dashed border-gray-200 p-6 text-center bg-white">
-          <div class="flex flex-col md:flex-row items-center justify-center gap-4">
-            <div class="w-full md:w-2/3">
-              <strong class="block text-lg">Drag & drop images here</strong>
-              <p class="text-sm text-gray-500 mt-1">Or use the controls below. Supports JPG, PNG, WEBP, BMP, GIF (first frame).</p>
-            </div>
-            <div class="flex gap-2">
-              <label class="bg-white border rounded px-4 py-2 cursor-pointer hover:bg-gray-50 shadow-sm">
-                Select files
-                <input id="fileInput" type="file" accept="image/*" multiple class="hidden">
-              </label>
-              <button id="importUrlBtn" class="bg-indigo-600 text-white rounded px-4 py-2 hover:bg-indigo-700">Import by URL</button>
-              <button id="resetBtn" class="bg-white border rounded px-4 py-2 hover:bg-gray-50">Reset</button>
-            </div>
+<main class="container mx-auto px-4 py-8">
+  <section class="grid md:grid-cols-3 gap-6">
+    <!-- Controls -->
+    <div class="md:col-span-2 space-y-4">
+      <div id="dropZone" class="dropzone rounded-lg border-2 border-dashed border-gray-200 p-6 text-center bg-white">
+        <div class="flex flex-col md:flex-row items-center justify-center gap-4">
+          <div class="w-full md:w-2/3">
+            <strong class="block text-lg">Drag & drop images here</strong>
+            <p class="text-sm text-gray-500 mt-1">Or use the controls below. Supports JPG, PNG, WEBP, BMP, GIF (first frame).</p>
+          </div>
+          <div class="flex gap-2">
+            <label class="bg-white border rounded px-4 py-2 cursor-pointer hover:bg-gray-50 shadow-sm">
+              Select files
+              <input id="fileInput" type="file" accept="image/*" multiple class="hidden">
+            </label>
+            <button id="importUrlBtn" class="bg-indigo-600 text-white rounded px-4 py-2 hover:bg-indigo-700">Import by URL</button>
+            <button id="resetBtn" class="bg-white border rounded px-4 py-2 hover:bg-gray-50">Reset</button>
           </div>
         </div>
+      </div>
 
-        <!-- queue -->
-        <div class="bg-white rounded-lg shadow-sm p-4">
-          <div class="flex items-center justify-between mb-2">
+      <!-- Queue + Page selection header -->
+      <div class="bg-white rounded-lg shadow-sm p-4">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-3">
             <h2 class="text-sm font-medium">Image Queue</h2>
-            <p class="text-xs text-gray-500">Drag to reorder</p>
+            <span class="text-xs text-gray-500">Drag to reorder</span>
           </div>
-          <div id="queue" class="space-y-3" style="min-height:72px"></div>
+
+          <div class="flex items-center gap-2 text-xs">
+            <label class="inline-flex items-center gap-2"><input id="toggleAll" type="checkbox" checked> Include all</label>
+            <label class="inline-flex items-center gap-2">Pages: <input id="pageRange" placeholder="e.g. 1-3 or 2,4" class="border rounded p-1 text-xs w-28" /></label>
+          </div>
         </div>
 
-        <!-- settings -->
-        <div class="bg-white rounded-lg shadow-sm p-4 grid md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium">Page Size</label>
-            <select id="pageSize" class="mt-1 block w-full border rounded p-2">
-              <option value="a4">A4 (210 × 297 mm)</option>
-              <option value="letter">Letter (216 × 279 mm)</option>
-              <option value="legal">Legal (216 × 356 mm)</option>
-              <option value="a3">A3 (297 × 420 mm)</option>
-              <option value="custom">Custom</option>
-            </select>
-            <div id="customSize" class="mt-2 hidden grid grid-cols-2 gap-2">
-              <input id="customWidth" type="number" min="1" placeholder="Width mm" class="border rounded p-2" />
-              <input id="customHeight" type="number" min="1" placeholder="Height mm" class="border rounded p-2" />
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium">Orientation</label>
-            <select id="orientation" class="mt-1 block w-full border rounded p-2">
-              <option value="portrait">Portrait</option>
-              <option value="landscape">Landscape</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium">Margins (mm) <span id="marginLabel" class="text-xs text-gray-500">(10)</span></label>
-            <input id="margin" type="range" min="0" max="50" value="10" class="w-full" />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium">Image Scale</label>
-            <select id="scaleMode" class="mt-1 block w-full border rounded p-2">
-              <option value="fit">Fit (contain, maintain aspect)</option>
-              <option value="cover">Cover (crop to fill)</option>
-              <option value="actual">Actual size (no scaling)</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium">Image Quality <span id="qualityLabel" class="text-xs text-gray-500">(0.9)</span></label>
-            <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.9" class="w-full" />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium">PDF Compression</label>
-            <select id="compression" class="mt-1 block w-full border rounded p-2">
-              <option value="none">None (best quality)</option>
-              <option value="medium">Medium</option>
-              <option value="high">High (smaller file)</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium">PDF Title (optional)</label>
-            <input id="pdfTitle" placeholder="Document title" class="mt-1 border rounded p-2 w-full" />
-          </div>
-
-        </div>
-
-        <div class="flex gap-3 mt-4">
-          <button id="convertBtn" class="bg-indigo-600 text-white px-5 py-2 rounded hover:bg-indigo-700 disabled:opacity-60" disabled>Convert to PDF</button>
-          <a id="downloadLink" class="hidden bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700" download>Download PDF</a>
-          <button id="openBtn" class="hidden bg-white border px-5 py-2 rounded">Open PDF</button>
-          <div id="status" class="ml-4 text-sm text-gray-500 self-center"></div>
-        </div>
-
+        <div id="queue" class="space-y-3 min-h-[72px]"></div>
+        <div id="queueEmpty" class="py-6 text-center text-sm text-gray-500">No images yet — drop files or import by URL.</div>
       </div>
 
-      <!-- Right: preview + help -->
-      <aside class="space-y-4">
-        <div class="bg-white rounded-lg shadow-sm p-4">
-          <h3 class="font-medium mb-2">Preview</h3>
-          <div id="previewArea" class="h-72 border border-dashed border-gray-200 rounded flex items-center justify-center bg-gray-50">
-            <p class="text-sm text-gray-500">Add images to see thumbnails and settings preview</p>
+      <!-- Settings -->
+      <div class="bg-white rounded-lg shadow-sm p-4 grid md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium">Page Size</label>
+          <select id="pageSize" class="mt-1 block w-full border rounded p-2">
+            <option value="a4">A4 (210 × 297 mm)</option>
+            <option value="letter">Letter (216 × 279 mm)</option>
+            <option value="legal">Legal (216 × 356 mm)</option>
+            <option value="a3">A3 (297 × 420 mm)</option>
+            <option value="custom">Custom</option>
+          </select>
+          <div id="customSize" class="mt-2 hidden grid grid-cols-2 gap-2">
+            <input id="customWidth" type="number" min="1" placeholder="Width mm" class="border rounded p-2" />
+            <input id="customHeight" type="number" min="1" placeholder="Height mm" class="border rounded p-2" />
           </div>
         </div>
 
-        <div id="features" class="bg-white rounded-lg shadow-sm p-4">
-          <h3 class="font-medium mb-2">Why use this</h3>
-          <ul class="text-sm text-gray-600 list-disc pl-5 space-y-1">
-            <li>Runs entirely in your browser — your images never leave your device.</li>
-            <li>Combine multiple images into one PDF and reorder pages.</li>
-            <li>Export high-quality PDFs with metadata support.</li>
-          </ul>
+        <div>
+          <label class="block text-sm font-medium">Orientation</label>
+          <select id="orientation" class="mt-1 block w-full border rounded p-2">
+            <option value="portrait">Portrait</option>
+            <option value="landscape">Landscape</option>
+          </select>
         </div>
 
-      </aside>
-    </section>
+        <div>
+          <label class="block text-sm font-medium">Margins (mm) <span id="marginLabel" class="text-xs text-gray-500">(10)</span></label>
+          <input id="margin" type="range" min="0" max="50" value="10" class="w-full" />
+        </div>
 
-    <!-- FAQ -->
-    <section id="faq" class="mt-8 bg-white p-6 rounded-lg shadow-sm">
-      <h2 class="text-lg font-semibold mb-3">FAQ</h2>
-      <div class="space-y-3 text-sm text-gray-700">
         <div>
-          <strong>Are my images uploaded?</strong>
-          <p class="text-gray-500">No — all conversion happens locally in your browser.</p>
+          <label class="block text-sm font-medium">Image Scale</label>
+          <select id="scaleMode" class="mt-1 block w-full border rounded p-2">
+            <option value="fit">Fit (contain)</option>
+            <option value="cover">Cover (fill & crop)</option>
+            <option value="actual">Actual size</option>
+          </select>
         </div>
+
         <div>
-          <strong>Can I convert many images into one PDF?</strong>
-          <p class="text-gray-500">Yes — add multiple images and reorder them before converting.</p>
+          <label class="block text-sm font-medium">Image Quality <span id="qualityLabel" class="text-xs text-gray-500">(0.9)</span></label>
+          <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.9" class="w-full" />
         </div>
+
         <div>
-          <strong>Is there a file size limit?</strong>
-          <p class="text-gray-500">Only limited by your device memory and browser. Very large images may be slow.</p>
+          <label class="block text-sm font-medium">PDF Compression</label>
+          <select id="compression" class="mt-1 block w-full border rounded p-2">
+            <option value="none">None (best)</option>
+            <option value="medium">Medium</option>
+            <option value="high">High (smaller)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium">PDF Title (optional)</label>
+          <input id="pdfTitle" placeholder="Document title" class="mt-1 border rounded p-2 w-full" />
         </div>
       </div>
-    </section>
 
-    <footer class="mt-8 text-xs text-gray-500">
-      © <span id="year"></span> Image → PDF Converter • Client-side only • No uploads
-    </footer>
-  </main>
+      <div class="flex gap-3 mt-4">
+        <button id="convertBtn" class="bg-indigo-600 text-white px-5 py-2 rounded hover:bg-indigo-700 disabled:opacity-60" disabled>Convert to PDF</button>
+        <a id="downloadLink" class="hidden bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700" download>Download PDF</a>
+        <button id="openBtn" class="hidden bg-white border px-5 py-2 rounded">Open PDF</button>
+        <div id="status" class="ml-4 text-sm text-gray-500 self-center"></div>
+      </div>
+    </div>
+
+    <!-- Right: preview + help -->
+    <aside class="space-y-4">
+      <div class="bg-white rounded-lg shadow-sm p-4">
+        <h3 class="font-medium mb-2">Preview</h3>
+        <div id="previewArea" class="h-72 border border-dashed border-gray-200 rounded flex items-center justify-center bg-gray-50">
+          <p class="text-sm text-gray-500">Add images to see thumbnails and settings preview</p>
+        </div>
+      </div>
+
+      <div id="features" class="bg-white rounded-lg shadow-sm p-4">
+        <h3 class="font-medium mb-2">Why use this</h3>
+        <ul class="text-sm text-gray-600 list-disc pl-5 space-y-1">
+          <li>Runs entirely in your browser — your images never leave your device.</li>
+          <li>Combine multiple images into one PDF and reorder pages.</li>
+          <li>Export high-quality PDFs with metadata support.</li>
+        </ul>
+      </div>
+    </aside>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="mt-8 bg-white p-6 rounded-lg shadow-sm">
+    <h2 class="text-lg font-semibold mb-3">FAQ</h2>
+    <div class="space-y-3 text-sm text-gray-700">
+      <div>
+        <strong>Are my images uploaded?</strong>
+        <p class="text-gray-500">No — all conversion happens locally in your browser.</p>
+      </div>
+      <div>
+        <strong>Can I convert many images into one PDF?</strong>
+        <p class="text-gray-500">Yes — add multiple images and reorder them before converting.</p>
+      </div>
+      <div>
+        <strong>Is there a file size limit?</strong>
+        <p class="text-gray-500">Only limited by your device memory and browser. Very large images may be slow.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="mt-8 text-xs text-gray-500">
+    © <span id="year"></span> Image → PDF Converter • Client-side only • No uploads
+  </footer>
+</main>
 
 <script>
-  // Utilities & constants
-  const mmToPts = mm => (mm * 72) / 25.4; // 1 pt = 1/72 inch, 1 inch = 25.4 mm
-  const sizesMM = {
-    a4: {w:210, h:297},
-    letter: {w:216, h:279},
-    legal: {w:216, h:356},
-    a3: {w:297, h:420}
-  };
+/* ------------------------------
+   Lightweight, fast startup:
+   - No heavy libs loaded on initial page load.
+   - pdf-lib and Sortable are loaded on demand.
+   - Thumbnails are small canvases to reduce memory/time.
+   ------------------------------- */
 
-  // DOM
-  const dropZone = document.getElementById('dropZone');
-  const fileInput = document.getElementById('fileInput');
-  const queueEl = document.getElementById('queue');
-  const previewArea = document.getElementById('previewArea');
-  const convertBtn = document.getElementById('convertBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const importUrlBtn = document.getElementById('importUrlBtn');
-  const downloadLink = document.getElementById('downloadLink');
-  const openBtn = document.getElementById('openBtn');
-  const status = document.getElementById('status');
+const mmToPts = mm => (mm * 72) / 25.4;
+const sizesMM = { a4:{w:210,h:297}, letter:{w:216,h:279}, legal:{w:216,h:356}, a3:{w:297,h:420} };
 
-  // Settings
-  const pageSizeSel = document.getElementById('pageSize');
-  const orientationSel = document.getElementById('orientation');
-  const marginInput = document.getElementById('margin');
-  const marginLabel = document.getElementById('marginLabel');
-  const qualityInput = document.getElementById('quality');
-  const qualityLabel = document.getElementById('qualityLabel');
-  const compressionSel = document.getElementById('compression');
-  const scaleModeSel = document.getElementById('scaleMode');
-  const pdfTitleInput = document.getElementById('pdfTitle');
-  const customSize = document.getElementById('customSize');
-  const customWidth = document.getElementById('customWidth');
-  const customHeight = document.getElementById('customHeight');
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const queueEl = document.getElementById('queue');
+const queueEmpty = document.getElementById('queueEmpty');
+const previewArea = document.getElementById('previewArea');
+const convertBtn = document.getElementById('convertBtn');
+const resetBtn = document.getElementById('resetBtn');
+const importUrlBtn = document.getElementById('importUrlBtn');
+const downloadLink = document.getElementById('downloadLink');
+const openBtn = document.getElementById('openBtn');
+const status = document.getElementById('status');
 
-  // State
-  let images = []; // {id, file, dataUrl, name, width, height}
-  let lastPdfBlobUrl = null;
+const pageSizeSel = document.getElementById('pageSize');
+const orientationSel = document.getElementById('orientation');
+const marginInput = document.getElementById('margin');
+const marginLabel = document.getElementById('marginLabel');
+const qualityInput = document.getElementById('quality');
+const qualityLabel = document.getElementById('qualityLabel');
+const compressionSel = document.getElementById('compression');
+const scaleModeSel = document.getElementById('scaleMode');
+const pdfTitleInput = document.getElementById('pdfTitle');
+const customSize = document.getElementById('customSize');
+const customWidth = document.getElementById('customWidth');
+const customHeight = document.getElementById('customHeight');
 
-  // initialize year
-  document.getElementById('year').textContent = new Date().getFullYear();
+const toggleAll = document.getElementById('toggleAll');
+const pageRange = document.getElementById('pageRange');
 
-  // Helpers
-  function readFileAsDataURL(file) {
-    return new Promise((res, rej) => {
-      const fr = new FileReader();
-      fr.onload = () => res(fr.result);
-      fr.onerror = rej;
-      fr.readAsDataURL(file);
-    });
+let images = []; // {id, file, dataUrl, name, width, height, include}
+let lastPdfBlobUrl = null;
+let SortableInstance = null;
+let libsLoaded = false;
+
+// small initial UI
+document.getElementById('year').textContent = new Date().getFullYear();
+pageSizeSel.addEventListener('change', ()=> customSize.classList.toggle('hidden', pageSizeSel.value !== 'custom'));
+marginInput.addEventListener('input', ()=> marginLabel.textContent = `(${marginInput.value})`);
+qualityInput.addEventListener('input', ()=> qualityLabel.textContent = `(${qualityInput.value})`);
+
+// file handlers
+fileInput.addEventListener('change', async (e)=> {
+  const files = Array.from(e.target.files || []);
+  await addFiles(files);
+  fileInput.value = '';
+});
+
+dropZone.addEventListener('dragover', (e)=> { e.preventDefault(); dropZone.classList.add('ring-2','ring-indigo-300'); });
+['dragleave','dragend','drop'].forEach(ev => dropZone.addEventListener(ev, ()=> dropZone.classList.remove('ring-2','ring-indigo-300')));
+dropZone.addEventListener('drop', async (e)=> {
+  e.preventDefault();
+  const files = Array.from(e.dataTransfer.files || []);
+  await addFiles(files);
+});
+
+async function addFiles(files) {
+  if (!files.length) return;
+  status.textContent = 'Processing files...';
+  for (const file of files) {
+    try {
+      if (!file.type.startsWith('image/')) continue;
+      const dataUrl = await readFileAsDataURL(file);
+      const img = await loadImage(dataUrl);
+      const thumbDataUrl = createThumbCanvas(img, 240).toDataURL('image/jpeg', 0.6); // small thumb
+      images.push({
+        id: cryptoRandomId(),
+        file,
+        dataUrl,
+        thumb: thumbDataUrl,
+        name: file.name || 'image',
+        width: img.width,
+        height: img.height,
+        include: true
+      });
+    } catch (err) {
+      console.warn('file add error', err);
+    }
   }
+  status.textContent = '';
+  renderQueue();
+  // enable sortable only when queue has items
+  maybeLoadSortable();
+}
 
-  async function fetchImageAsFile(url) {
-    const resp = await fetch(url, {mode:'cors'});
-    if (!resp.ok) throw new Error('Could not fetch image: '+resp.status);
-    const blob = await resp.blob();
-    // derive filename
-    const name = (new URL(url)).pathname.split('/').pop() || 'image';
-    const ext = blob.type.split('/').pop();
-    return new File([blob], name + (name.includes('.') ? '' : '.'+ext), {type: blob.type});
+importUrlBtn.addEventListener('click', async ()=>{
+  const url = prompt('Enter image URL (CORS-enabled):');
+  if (!url) return;
+  status.textContent = 'Fetching image...';
+  try {
+    const file = await fetchImageAsFile(url);
+    await addFiles([file]);
+  } catch (err) {
+    alert('Failed to fetch image. Make sure the URL is direct to an image and CORS is allowed.\n\n' + err.message);
+    console.error(err);
+  } finally { status.textContent = ''; }
+});
+
+resetBtn.addEventListener('click', ()=>{
+  if (!confirm('Reset and remove all images?')) return;
+  images = []; renderQueue();
+  if (lastPdfBlobUrl) { URL.revokeObjectURL(lastPdfBlobUrl); lastPdfBlobUrl = null; }
+  downloadLink.classList.add('hidden'); openBtn.classList.add('hidden');
+  status.textContent = '';
+});
+
+function renderQueue() {
+  queueEl.innerHTML = '';
+  if (images.length === 0) {
+    queueEmpty.style.display = 'block';
+    previewArea.innerHTML = '<p class="text-sm text-gray-500">Add images to see thumbnails and settings preview</p>';
+    convertBtn.disabled = true;
+    return;
   }
+  queueEmpty.style.display = 'none';
+  images.forEach((img, idx) => {
+    const item = document.createElement('div');
+    item.className = 'flex items-center gap-3 p-2 rounded border border-gray-100 bg-gray-50';
+    item.dataset.id = img.id;
 
-  function createQueueItem(imgObj) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'flex items-center gap-3 p-2 rounded border border-gray-100 bg-gray-50';
-    wrapper.dataset.id = imgObj.id;
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox'; checkbox.checked = img.include;
+    checkbox.className = 'mr-2';
+    checkbox.addEventListener('change', ()=> { img.include = checkbox.checked; updateToggleAll(); });
 
     const thumb = document.createElement('img');
-    thumb.src = imgObj.dataUrl;
+    thumb.src = img.thumb;
     thumb.className = 'thumb';
-    thumb.alt = imgObj.name;
+    thumb.alt = img.name;
 
     const meta = document.createElement('div');
     meta.className = 'flex-1 min-w-0';
-    meta.innerHTML = `<div class="text-sm font-medium truncate">${escapeHtml(imgObj.name)}</div>
-      <div class="text-xs text-gray-500"> ${imgObj.width} × ${imgObj.height}px</div>`;
+    meta.innerHTML = `<div class="text-sm font-medium truncate">${escapeHtml(img.name)}</div>
+      <div class="text-xs text-gray-500"> ${img.width} × ${img.height}px • Page ${idx+1}</div>`;
 
     const actions = document.createElement('div');
     actions.className = 'flex gap-2';
@@ -296,362 +354,327 @@
     const remove = document.createElement('button'); remove.className='p-1 text-red-500'; remove.innerHTML='🗑️'; remove.title='Remove';
     actions.append(up, down, remove);
 
-    up.addEventListener('click', ()=> moveItem(imgObj.id, -1));
-    down.addEventListener('click', ()=> moveItem(imgObj.id, +1));
-    remove.addEventListener('click', ()=> removeItem(imgObj.id));
+    up.addEventListener('click', ()=> moveItem(img.id, -1));
+    down.addEventListener('click', ()=> moveItem(img.id, +1));
+    remove.addEventListener('click', ()=> { images = images.filter(i=> i.id !== img.id); renderQueue(); });
 
-    wrapper.append(thumb, meta, actions);
-    return wrapper;
-  }
+    item.append(checkbox, thumb, meta, actions);
+    queueEl.appendChild(item);
+  });
 
-  function renderQueue() {
-    queueEl.innerHTML = '';
-    if (images.length === 0) {
-      previewArea.innerHTML = '<p class="text-sm text-gray-500">Add images to see thumbnails and settings preview</p>';
-      convertBtn.disabled = true;
-      return;
-    }
-    const frag = document.createDocumentFragment();
-    images.forEach(img => frag.appendChild(createQueueItem(img)));
-    queueEl.appendChild(frag);
-    convertBtn.disabled = false;
-    // preview area: show first image large
-    const first = images[0];
+  // preview first included image
+  const first = images.find(i=>i.include);
+  if (first) {
     previewArea.innerHTML = '';
     const imgTag = document.createElement('img');
     imgTag.src = first.dataUrl;
     imgTag.className = 'max-h-full max-w-full object-contain';
     previewArea.appendChild(imgTag);
+  } else {
+    previewArea.innerHTML = '<p class="text-sm text-gray-500">No pages selected.</p>';
   }
 
-  // reorder helpers
-  function moveItem(id, dir) {
-    const idx = images.findIndex(i => i.id === id);
-    if (idx === -1) return;
-    const newIdx = Math.max(0, Math.min(images.length -1, idx + dir));
-    if (newIdx === idx) return;
-    const [item] = images.splice(idx,1);
-    images.splice(newIdx,0,item);
-    renderQueue();
-  }
-  function removeItem(id) {
-    images = images.filter(i => i.id !== id);
-    renderQueue();
-  }
+  convertBtn.disabled = images.filter(i=>i.include).length === 0;
+  // reinitialize Sortable if present to keep dataset synced
+  if (SortableInstance) SortableInstance.option('onEnd', onSortEnd);
+}
 
-  function escapeHtml(unsafe) {
-    return unsafe.replace(/[&<"']/g, function(m) {
-      return {'&':'&amp;','<':'&lt;','"':'&quot;',"'":'&#039;'}[m];
-    });
-  }
+function updateToggleAll() {
+  const all = images.length > 0 && images.every(i=>i.include);
+  toggleAll.checked = all;
+}
 
-  // file handling
-  fileInput.addEventListener('change', async (e) => {
-    const files = Array.from(e.target.files || []);
-    await addFiles(files);
-    fileInput.value = '';
-  });
-
-  dropZone.addEventListener('dragover', (e)=> {
-    e.preventDefault();
-    dropZone.classList.add('ring-2','ring-indigo-300');
-  });
-  ['dragleave','dragend','drop'].forEach(ev => dropZone.addEventListener(ev, (e)=>{
-    dropZone.classList.remove('ring-2','ring-indigo-300');
-  }));
-  dropZone.addEventListener('drop', async (e)=> {
-    e.preventDefault();
-    const dt = e.dataTransfer;
-    const files = Array.from(dt.files || []);
-    await addFiles(files);
-  });
-
-  async function addFiles(files) {
-    status.textContent = 'Processing files...';
-    for (const file of files) {
-      if (!file.type.startsWith('image/')) continue;
-      try {
-        const dataUrl = await readFileAsDataURL(file);
-        const img = await loadImage(dataUrl);
-        images.push({
-          id: cryptoRandomId(),
-          file,
-          dataUrl,
-          name: file.name || 'image',
-          width: img.width,
-          height: img.height,
-        });
-      } catch (err) {
-        console.error('Error reading file', err);
-      }
-    }
-    status.textContent = '';
-    renderQueue();
-  }
-
-  // import by URL
-  importUrlBtn.addEventListener('click', async ()=>{
-    const url = prompt('Enter image URL (CORS-enabled):');
-    if (!url) return;
-    status.textContent = 'Fetching image...';
-    try {
-      const file = await fetchImageAsFile(url);
-      await addFiles([file]);
-    } catch (err) {
-      alert('Failed to fetch image. Make sure the URL is direct to an image and CORS is allowed.\n\n' + err.message);
-      console.error(err);
-    } finally { status.textContent = ''; }
-  });
-
-  // reset
-  resetBtn.addEventListener('click', ()=>{
-    if (!confirm('Reset and remove all images?')) return;
-    images = [];
-    renderQueue();
-    if (lastPdfBlobUrl) {
-      URL.revokeObjectURL(lastPdfBlobUrl);
-      lastPdfBlobUrl = null;
-    }
-    downloadLink.classList.add('hidden');
-    openBtn.classList.add('hidden');
-    status.textContent = '';
-  });
-
-  // page size UI toggle
-  pageSizeSel.addEventListener('change', ()=>{
-    customSize.classList.toggle('hidden', pageSizeSel.value !== 'custom');
-  });
-
-  marginInput.addEventListener('input', ()=> marginLabel.textContent = `(${marginInput.value})`);
-  qualityInput.addEventListener('input', ()=> qualityLabel.textContent = `(${qualityInput.value})`;
-
-  // convert -> PDF
-  convertBtn.addEventListener('click', async ()=> {
-    if (images.length === 0) return alert('Add images first.');
-    convertBtn.disabled = true;
-    status.textContent = 'Preparing PDF...';
-    try {
-      const pdfBytes = await buildPdf();
-      const blob = new Blob([pdfBytes], {type: 'application/pdf'});
-      if (lastPdfBlobUrl) URL.revokeObjectURL(lastPdfBlobUrl);
-      lastPdfBlobUrl = URL.createObjectURL(blob);
-      downloadLink.href = lastPdfBlobUrl;
-      downloadLink.download = (pdfTitleInput.value?.trim() || 'images') + '.pdf';
-      downloadLink.classList.remove('hidden');
-      openBtn.classList.remove('hidden');
-      openBtn.onclick = ()=> window.open(lastPdfBlobUrl, '_blank');
-      status.textContent = 'PDF ready — click Download.';
-    } catch (err) {
-      console.error(err);
-      alert('Failed to build PDF: ' + err.message);
-      status.textContent = 'Conversion failed.';
-    } finally {
-      convertBtn.disabled = false;
-    }
-  });
-
-  // pdf builder using pdf-lib
-  async function buildPdf() {
-    const { PDFDocument, StandardFonts } = PDFLib;
-    const pdfDoc = await PDFDocument.create();
-
-    // metadata
-    const title = pdfTitleInput.value?.trim();
-    if (title) pdfDoc.setTitle(title);
-
-    // page size
-    let wmm, hmm;
-    if (pageSizeSel.value === 'custom') {
-      wmm = Number(customWidth.value) || 210;
-      hmm = Number(customHeight.value) || 297;
-    } else {
-      const s = sizesMM[pageSizeSel.value] || sizesMM.a4;
-      wmm = s.w; hmm = s.h;
-    }
-    let pageW = mmToPts(wmm);
-    let pageH = mmToPts(hmm);
-    if (orientationSel.value === 'landscape') [pageW, pageH] = [pageH, pageW];
-
-    const marginPts = mmToPts(Number(marginInput.value || 10));
-
-    // for each image in order, add page and embed image
-    for (let i = 0; i < images.length; i++) {
-      const img = images[i];
-      // draw into canvas to apply quality/compression and scale
-      const targetW = Math.max(1, pageW - marginPts*2);
-      const targetH = Math.max(1, pageH - marginPts*2);
-
-      // load image as HTMLImageElement
-      const htmlImg = await loadImage(img.dataUrl);
-      // compute draw size based on scaleMode
-      const scaleMode = scaleModeSel.value;
-      let drawW = htmlImg.width, drawH = htmlImg.height;
-
-      // compute scale factors working in pixels: we treat canvas pixel sizes relative to pdf points by 1:1 ratio because we'll embed the image bytes directly
-      // create canvas sized to available area (in pixels) but maintain aspect ratio
-      // We'll use a scaling factor so large images don't kill memory — fit to target points up to 2000px.
-      const maxCanvasDim = 2800; // cap to avoid insane memory
-      const availW = targetW; const availH = targetH;
-
-      if (scaleMode === 'actual') {
-        // keep actual pixel size but cap
-        drawW = Math.min(htmlImg.width, maxCanvasDim);
-        drawH = Math.min(htmlImg.height, maxCanvasDim);
-      } else {
-        // compute scale to fit or cover to available
-        const sx = availW / htmlImg.width;
-        const sy = availH / htmlImg.height;
-        if (scaleMode === 'fit') {
-          const s = Math.min(sx, sy);
-          drawW = Math.round(htmlImg.width * s);
-          drawH = Math.round(htmlImg.height * s);
-        } else if (scaleMode === 'cover') {
-          const s = Math.max(sx, sy);
-          drawW = Math.round(htmlImg.width * s);
-          drawH = Math.round(htmlImg.height * s);
-        }
-        // cap
-        const cap = Math.max(600, Math.min(maxCanvasDim, Math.max(drawW, drawH)));
-        if (drawW > cap || drawH > cap) {
-          const scale = cap / Math.max(drawW, drawH);
-          drawW = Math.round(drawW * scale);
-          drawH = Math.round(drawH * scale);
-        }
-      }
-
-      // draw to canvas
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, drawW);
-      canvas.height = Math.max(1, drawH);
-      const ctx = canvas.getContext('2d');
-      // background white for transparency
-      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
-
-      let dx = 0, dy = 0, dw = canvas.width, dh = canvas.height;
-      if (scaleMode === 'cover') {
-        // cover: center crop
-        const sx = htmlImg.width / drawW;
-        const sy = htmlImg.height / drawH;
-        // draw image scaled and cropped
-        // But simpler: draw scaled to fill canvas while preserving aspect using drawImage with source crop
-        const scale = Math.max(canvas.width / htmlImg.width, canvas.height / htmlImg.height);
-        const sw = Math.round(canvas.width / scale);
-        const sh = Math.round(canvas.height / scale);
-        const sx0 = Math.round((htmlImg.width - sw) / 2);
-        const sy0 = Math.round((htmlImg.height - sh) / 2);
-        ctx.drawImage(htmlImg, sx0, sy0, sw, sh, 0, 0, canvas.width, canvas.height);
-      } else if (scaleMode === 'fit' || scaleMode === 'actual') {
-        // center with blank space
-        const ratio = Math.min(canvas.width / htmlImg.width, canvas.height / htmlImg.height);
-        const iw = Math.round(htmlImg.width * ratio);
-        const ih = Math.round(htmlImg.height * ratio);
-        dx = Math.round((canvas.width - iw)/2);
-        dy = Math.round((canvas.height - ih)/2);
-        dw = iw; dh = ih;
-        ctx.drawImage(htmlImg, 0, 0, htmlImg.width, htmlImg.height, dx, dy, dw, dh);
-      } else {
-        ctx.drawImage(htmlImg, 0, 0, canvas.width, canvas.height);
-      }
-
-      // image quality
-      const quality = Number(qualityInput.value || 0.9);
-      const compression = compressionSel.value; // not used directly because we use JPEG quality
-      // prefer JPEG for smaller size
-      let mime = 'image/jpeg';
-      let dataUrl = canvas.toDataURL(mime, quality);
-
-      // convert dataURL to Uint8Array
-      const u8 = dataURLToUint8Array(dataUrl);
-
-      // embed
-      let embeddedImage;
-      try {
-        embeddedImage = await pdfDoc.embedJpg(u8);
-      } catch (e) {
-        // fallback to png embedding
-        const pngData = canvas.toDataURL('image/png');
-        const u8png = dataURLToUint8Array(pngData);
-        embeddedImage = await pdfDoc.embedPng(u8png);
-      }
-      const imgDims = embeddedImage.scale(1);
-
-      // create page and draw image centered within margins
-      const page = pdfDoc.addPage([pageW, pageH]);
-      // center area
-      const drawScaleX = (targetW) / imgDims.width;
-      const drawScaleY = (targetH) / imgDims.height;
-      let drawScale;
-      if (scaleMode === 'fit') drawScale = Math.min(drawScaleX, drawScaleY);
-      else if (scaleMode === 'cover') drawScale = Math.max(drawScaleX, drawScaleY);
-      else if (scaleMode === 'actual') drawScale = 1;
-      else drawScale = Math.min(drawScaleX, drawScaleY);
-
-      const finalW = imgDims.width * drawScale;
-      const finalH = imgDims.height * drawScale;
-
-      const x = (pageW - finalW) / 2;
-      const y = (pageH - finalH) / 2;
-
-      page.drawImage(embeddedImage, {
-        x, y,
-        width: finalW,
-        height: finalH
-      });
-
-      // small optional: add page number or metadata etc.
-    }
-
-    const pdfBytes = await pdfDoc.save();
-    return pdfBytes;
-  }
-
-  // small helpers
-  function dataURLToUint8Array(dataURL) {
-    const base64 = dataURL.split(',')[1];
-    const raw = atob(base64);
-    const u8 = new Uint8Array(raw.length);
-    for (let i = 0; i < raw.length; ++i) u8[i] = raw.charCodeAt(i);
-    return u8;
-  }
-
-  function loadImage(dataOrUrl) {
-    return new Promise((res, rej) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => res(img);
-      img.onerror = (e) => rej(new Error('Image load error'));
-      img.src = dataOrUrl;
-    });
-  }
-
-  function cryptoRandomId() {
-    return Math.random().toString(36).slice(2, 9);
-  }
-
-  // initialize SortableJS on the queue for drag reorder
-  const sortable = new Sortable(queueEl, {
-    animation: 150,
-    onEnd: (evt) => {
-      // reorder images array accordingly
-      const ids = Array.from(queueEl.children).map(ch => ch.dataset.id);
-      images.sort((a,b)=> ids.indexOf(a.id) - ids.indexOf(b.id));
-      renderQueue();
-    }
-  });
-
-  // small CORS note: importing images by URL requires the remote server to allow cross-origin image access.
-  // You can use images hosted on Imgur, GitHub raw, or other CORS-enabled hosts.
-
-  // helper to add a single image File object programmatically
-  async function addImageFile(file) {
-    await addFiles([file]);
-  }
-
-  // expose addImageFile (useful for later embedding or other pages)
-  window.addImageFile = addImageFile;
-
-  // done
+toggleAll.addEventListener('change', ()=> {
+  images.forEach(i => i.include = toggleAll.checked);
   renderQueue();
+});
+
+// reorder helpers
+function moveItem(id, dir) {
+  const idx = images.findIndex(i => i.id === id);
+  if (idx === -1) return;
+  const newIdx = Math.max(0, Math.min(images.length -1, idx + dir));
+  if (newIdx === idx) return;
+  const [item] = images.splice(idx,1);
+  images.splice(newIdx,0,item);
+  renderQueue();
+}
+function onSortEnd(evt) {
+  const ids = Array.from(queueEl.children).map(ch => ch.dataset.id);
+  images.sort((a,b)=> ids.indexOf(a.id) - ids.indexOf(b.id));
+  renderQueue();
+}
+
+// lazy load Sortable
+async function maybeLoadSortable() {
+  if (SortableInstance || images.length === 0) return;
+  try {
+    await loadScript('https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js');
+    SortableInstance = new Sortable(queueEl, { animation: 150, onEnd: onSortEnd });
+  } catch (e) {
+    console.warn('Failed to load SortableJS', e);
+  }
+}
+
+// Convert button loads pdf-lib lazily
+convertBtn.addEventListener('click', async ()=> {
+  if (images.filter(i=>i.include).length === 0) return alert('Select at least one page to convert.');
+  convertBtn.disabled = true;
+  status.textContent = 'Loading engine...';
+  if (!libsLoaded) {
+    try {
+      await loadScript('https://unpkg.com/pdf-lib/dist/pdf-lib.min.js');
+      libsLoaded = true;
+    } catch (e) {
+      alert('Failed to load PDF library: ' + e.message);
+      convertBtn.disabled = false;
+      status.textContent = '';
+      return;
+    }
+  }
+  try {
+    status.textContent = 'Building PDF...';
+    const pdfBytes = await buildPdfWithProgress();
+    const blob = new Blob([pdfBytes], {type:'application/pdf'});
+    if (lastPdfBlobUrl) URL.revokeObjectURL(lastPdfBlobUrl);
+    lastPdfBlobUrl = URL.createObjectURL(blob);
+    downloadLink.href = lastPdfBlobUrl;
+    downloadLink.download = (pdfTitleInput.value?.trim() || 'images') + '.pdf';
+    downloadLink.classList.remove('hidden');
+    openBtn.classList.remove('hidden');
+    openBtn.onclick = ()=> window.open(lastPdfBlobUrl,'_blank');
+    status.textContent = 'PDF ready — click Download.';
+  } catch (err) {
+    console.error(err);
+    alert('Conversion failed: ' + err.message);
+    status.textContent = 'Conversion failed.';
+  } finally {
+    convertBtn.disabled = false;
+  }
+});
+
+// BUILD PDF with progress and page-range selection
+async function buildPdfWithProgress() {
+  const { PDFDocument } = window.PDFLib;
+  const pdfDoc = await PDFDocument.create();
+  const title = pdfTitleInput.value?.trim(); if (title) pdfDoc.setTitle(title);
+
+  // page dimensions
+  let wmm, hmm;
+  if (pageSizeSel.value === 'custom') { wmm = Number(customWidth.value) || 210; hmm = Number(customHeight.value) || 297; }
+  else { const s = sizesMM[pageSizeSel.value] || sizesMM.a4; wmm = s.w; hmm = s.h; }
+  let pageW = mmToPts(wmm), pageH = mmToPts(hmm);
+  if (orientationSel.value === 'landscape') [pageW, pageH] = [pageH, pageW];
+  const marginPts = mmToPts(Number(marginInput.value || 10));
+  const targetW = Math.max(1, pageW - marginPts*2), targetH = Math.max(1, pageH - marginPts*2);
+
+  // determine pages to include: either via checkboxes or pageRange (e.g., "1-3" or "2,4")
+  const includedImages = images.map((img,i)=> ({img, index:i+1})).filter(x => x.img.include);
+  const rangeStr = (pageRange.value || '').trim();
+  let finalList = includedImages;
+  if (rangeStr) {
+    const pages = parsePageRange(rangeStr); // returns set of page numbers
+    if (pages.size > 0) finalList = includedImages.filter(x => pages.has(x.index));
+    if (finalList.length === 0) throw new Error('Page range did not match any selected pages.');
+  }
+
+  // iterate and embed
+  const quality = Number(qualityInput.value || 0.9);
+  // cap canvas dimension to avoid long processing
+  const maxCanvasDim = 2400;
+
+  for (let i = 0; i < finalList.length; i++) {
+    const { img, index } = finalList[i];
+    status.textContent = `Processing page ${i+1} of ${finalList.length} (original page ${index})...`;
+
+    const htmlImg = await loadImage(img.dataUrl);
+
+    // compute scale for drawing to a canvas for good compression: we map target points to px roughly 1:1
+    // To avoid oversize, we limit largest dimension
+    let drawW = htmlImg.width, drawH = htmlImg.height;
+    const sx = targetW / htmlImg.width, sy = targetH / htmlImg.height;
+    if (scaleModeSel.value === 'actual') {
+      // cap
+      if (drawW > maxCanvasDim || drawH > maxCanvasDim) {
+        const sc = maxCanvasDim / Math.max(drawW, drawH);
+        drawW = Math.round(drawW * sc); drawH = Math.round(drawH * sc);
+      }
+    } else if (scaleModeSel.value === 'fit') {
+      const s = Math.min(sx, sy);
+      drawW = Math.round(htmlImg.width * s);
+      drawH = Math.round(htmlImg.height * s);
+    } else if (scaleModeSel.value === 'cover') {
+      const s = Math.max(sx, sy);
+      drawW = Math.round(htmlImg.width * s);
+      drawH = Math.round(htmlImg.height * s);
+    }
+    // cap final canvas dim
+    const cap = Math.max(800, Math.min(maxCanvasDim, Math.max(drawW, drawH)));
+    if (drawW > cap || drawH > cap) {
+      const sc = cap / Math.max(drawW, drawH);
+      drawW = Math.round(drawW * sc); drawH = Math.round(drawH * sc);
+    }
+
+    // draw to canvas
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, drawW);
+    canvas.height = Math.max(1, drawH);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    if (scaleModeSel.value === 'cover') {
+      const scale = Math.max(canvas.width / htmlImg.width, canvas.height / htmlImg.height);
+      const sw = Math.round(canvas.width / scale);
+      const sh = Math.round(canvas.height / scale);
+      const sx0 = Math.round((htmlImg.width - sw)/2);
+      const sy0 = Math.round((htmlImg.height - sh)/2);
+      ctx.drawImage(htmlImg, sx0, sy0, sw, sh, 0,0, canvas.width, canvas.height);
+    } else {
+      const ratio = Math.min(canvas.width / htmlImg.width, canvas.height / htmlImg.height);
+      const iw = Math.round(htmlImg.width * ratio), ih = Math.round(htmlImg.height * ratio);
+      const dx = Math.round((canvas.width - iw)/2), dy = Math.round((canvas.height - ih)/2);
+      ctx.drawImage(htmlImg, 0,0, htmlImg.width, htmlImg.height, dx, dy, iw, ih);
+    }
+
+    // use jpeg for smaller size, with quality slider
+    const mime = 'image/jpeg';
+    const dataUrl = canvas.toDataURL(mime, quality);
+    const u8 = dataURLToUint8Array(dataUrl);
+    let embeddedImage;
+    try {
+      embeddedImage = await pdfDoc.embedJpg(u8);
+    } catch (e) {
+      const u8png = dataURLToUint8Array(canvas.toDataURL('image/png'));
+      embeddedImage = await pdfDoc.embedPng(u8png);
+    }
+    const imgDims = embeddedImage.scale(1);
+
+    // PDF page
+    const page = pdfDoc.addPage([pageW, pageH]);
+    // compute draw scale to map embedded pixel dims to PDF points
+    // pdf-lib uses image width/height in points equal to px count of the embedded image
+    // So we compute scaling so image fits into targetW x targetH points
+    const drawScaleX = targetW / imgDims.width;
+    const drawScaleY = targetH / imgDims.height;
+    let drawScale = Math.min(drawScaleX, drawScaleY);
+    if (scaleModeSel.value === 'cover') drawScale = Math.max(drawScaleX, drawScaleY);
+    if (scaleModeSel.value === 'actual') drawScale = 1;
+    const finalW = imgDims.width * drawScale;
+    const finalH = imgDims.height * drawScale;
+    const x = (pageW - finalW) / 2;
+    const y = (pageH - finalH) / 2;
+    page.drawImage(embeddedImage, { x, y, width: finalW, height: finalH });
+  }
+
+  status.textContent = 'Finalizing PDF...';
+  const bytes = await pdfDoc.save();
+  return bytes;
+}
+
+// helpers
+function parsePageRange(str) {
+  // returns Set of page numbers (1-based)
+  const parts = str.split(',').map(s=>s.trim()).filter(Boolean);
+  const out = new Set();
+  for (const p of parts) {
+    if (p.includes('-')) {
+      const [a,b] = p.split('-').map(v=>parseInt(v,10)).filter(n=>!isNaN(n));
+      if (!isNaN(a) && !isNaN(b)) {
+        for (let i=Math.min(a,b); i<=Math.max(a,b); i++) out.add(i);
+      }
+    } else {
+      const n = parseInt(p,10);
+      if (!isNaN(n)) out.add(n);
+    }
+  }
+  return out;
+}
+
+function dataURLToUint8Array(dataURL) {
+  const base64 = dataURL.split(',')[1];
+  const raw = atob(base64);
+  const u8 = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; ++i) u8[i] = raw.charCodeAt(i);
+  return u8;
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((res, rej)=> {
+    const fr = new FileReader();
+    fr.onload = ()=> res(fr.result);
+    fr.onerror = rej;
+    fr.readAsDataURL(file);
+  });
+}
+
+async function fetchImageAsFile(url) {
+  const resp = await fetch(url, {mode:'cors'});
+  if (!resp.ok) throw new Error('Could not fetch image: '+resp.status);
+  const blob = await resp.blob();
+  const name = (new URL(url)).pathname.split('/').pop() || 'image';
+  const ext = blob.type.split('/').pop();
+  return new File([blob], name + (name.includes('.') ? '' : '.'+ext), {type: blob.type});
+}
+
+function createThumbCanvas(img, maxDim) {
+  const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+  const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,c.width,c.height);
+  ctx.drawImage(img, 0,0, img.width, img.height, 0,0, w, h);
+  return c;
+}
+
+function loadImage(src) {
+  return new Promise((res, rej)=> {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = ()=> res(img);
+    img.onerror = (e)=> rej(new Error('Image load error'));
+    img.src = src;
+  });
+}
+
+function escapeHtml(unsafe) {
+  return unsafe.replace(/[&<"']/g, function(m) { return {'&':'&amp;','<':'&lt;','"':'&quot;',"'":'&#039;'}[m]; });
+}
+
+function cryptoRandomId() { return Math.random().toString(36).slice(2,9); }
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = () => setTimeout(resolve, 10);
+    s.onerror = (e) => reject(new Error('Failed to load ' + src));
+    document.head.appendChild(s);
+  });
+}
+
+// small util to create initial thumb for very large single images quickly
+function quickThumbForDataUrl(dataUrl) { return dataUrl; }
+
+// open/download handling
+downloadLink.addEventListener('click', ()=> { status.textContent = 'Saved — thank you!'; });
+
+// expose addImageFile in case you want to programmatically add
+window.addImageFile = async function(file) { await addFiles([file]); };
+
+// ensure initial UI state
+renderQueue();
+
+// Attempt to preconnect to CDN lightly (non-blocking) to speed first on-demand load
+(function preconnect() {
+  const links = ['https://unpkg.com', 'https://cdn.jsdelivr.net'];
+  for (const u of links) {
+    const l = document.createElement('link');
+    l.rel = 'preconnect'; l.href = u; l.crossOrigin = '';
+    document.head.appendChild(l);
+  }
+})();
+
 </script>
 </body>
 </html>
