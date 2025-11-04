@@ -1,253 +1,657 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Image → PDF — Multi-image Converter (Offline)</title>
+  <meta name="description" content="Convert multiple images to a single PDF in your browser. Drag & drop, reorder, import by URL, set page size/orientation/margins, and download — no uploads." />
+  <meta name="keywords" content="image to pdf, jpg to pdf, png to pdf, multi-image pdf, convert images to pdf, client-side pdf" />
+  <link rel="canonical" href="https://img-to-pdf.github.io/" />
 
-  <title>Image to PDF Converter | Free Online JPG, PNG, WEBP to PDF Tool</title>
-  <meta name="description" content="Convert images to PDF online instantly and securely — no uploads required. Free Image to PDF Converter for JPG, PNG, WEBP, and more. Fast, private, and high-quality results.">
-  <meta name="keywords" content="image to pdf, jpg to pdf, png to pdf, free pdf converter, online pdf tool, convert image to pdf, secure pdf converter, browser pdf converter">
+  <!-- OpenGraph / Twitter -->
+  <meta property="og:title" content="Image → PDF: Multi-image Converter (Offline)" />
+  <meta property="og:description" content="Convert multiple images to a single PDF in your browser. Drag & drop, reorder, import by URL, set page size/orientation/margins, and download — no uploads." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
 
-  <!-- Canonical URL -->
-  <link rel="canonical" href="https://img-to-pdf.github.io/">
-
-  <!-- Robots Directive -->
-  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
-
-  <!-- Open Graph (Facebook / LinkedIn) -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://img-to-pdf.github.io/">
-  <meta property="og:title" content="Free Image to PDF Converter - Convert JPG, PNG, WEBP to PDF Instantly">
-  <meta property="og:description" content="Fast, free, and secure Image to PDF Converter — works offline in your browser with full privacy.">
-  <meta property="og:image" content="https://img-to-pdf.github.io/preview.jpg">
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Free Image to PDF Converter - JPG, PNG, WEBP to PDF Online">
-  <meta name="twitter:description" content="Convert images to PDF securely and privately in your browser. 100% free tool.">
-  <meta name="twitter:image" content="https://img-to-pdf.github.io/preview.jpg">
-
-  <!-- Favicon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
-
-  <!-- Structured Data: WebApplication -->
+  <!-- JSON-LD (FAQ + WebApp) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Image to PDF Converter",
-    "description": "Free online tool to convert images to PDF files securely in your browser — no uploads required.",
+    "name": "Image → PDF (Multi-image Converter)",
     "url": "https://img-to-pdf.github.io/",
+    "description": "Convert multiple images to a single PDF in the browser. Drag & drop, import URLs, reorder, and download.",
     "applicationCategory": "UtilityApplication",
-    "operatingSystem": "Any",
-    "author": {
-      "@type": "Organization",
-      "name": "Image to PDF Converter"
-    },
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
-    "softwareVersion": "1.0"
+    "offers": {"@type":"Offer","price":"0","priceCurrency":"USD"}
   }
   </script>
 
-  <!-- Structured Data: FAQPage -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "Is the Image to PDF Converter free?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes, it is completely free. You can convert images to PDF without registration or hidden costs."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Are my files uploaded to a server?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "No. All processing happens locally in your browser — your images never leave your device."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What image formats are supported?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Supported formats include JPG, JPEG, PNG, WEBP, BMP, and GIF."
-        }
-      }
-    ]
-  }
-  </script>
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-  <link rel="stylesheet" href="styles.css">
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://img-to-pdf.github.io/"
-    }
-  ]
-}
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- Libraries -->
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
   <style>
-    :root {
-      --primary-color: #4361ee;
-      --primary-dark: #3a56d4;
-      --primary-light: #eef2ff;
-      --secondary-color: #7209b7;
-      --text-color: #333;
-      --light-text: #666;
-      --lighter-text: #888;
-      --border-color: #e1e5e9;
-      --background-color: #f8f9fa;
-      --card-background: #ffffff;
-      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.05);
-      --radius: 8px;
-      --radius-lg: 12px;
+    /* small extra styles on top of Tailwind */
+    .dropzone {
+      background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 8px);
     }
-    .seo {
-margin-top: 60px;
-padding: 40px 20px;
-background: var(--primary-light, #eef2ff);
-border-top: 1px solid var(--border-color, #e1e5e9);
-border-radius: var(--radius-lg, 12px) var(--radius-lg, 12px) 0 0;
-box-shadow: var(--shadow-light, 0 2px 8px rgba(0, 0, 0, 0.05));
-color: var(--text-color, #333);
-font-size: 15px;
-line-height: 1.7;
-}
-
-.seo h2 {
-font-size: 1.4rem;
-color: var(--primary-color, #4361ee);
-margin-bottom: 15px;
-text-align: center;
-font-weight: 600;
-}
-
-.seo p {
-margin-bottom: 15px;
-max-width: 1000px;
-margin-left: auto;
-margin-right: auto;
-text-align: justify;
-}
-
-.seo strong {
-color: var(--secondary-color, #7209b7);
-font-weight: 600;
-}
-
-.seo a {
-color: var(--primary-color, #4361ee);
-text-decoration: underline;
-}
-
-.seo a:hover {
-color: var(--primary-dark, #3a56d4);
-}
-
-@media (max-width: 768px) {
-.seo {
-padding: 25px 15px;
-font-size: 14px;
-}
-
-.seo h2 {
-font-size: 1.2rem;
-}
-}
-    .btn-success {
-    background: linear-gradient(135deg, #10b981, #059669) !important;
-    border-color: #059669 !important;
-    color: white !important;
-}
-
-.btn-success:hover {
-    background: linear-gradient(135deg, #059669, #047857) !important;
-    border-color: #047857 !important;
-}
+    .thumb {
+      max-height: 84px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+    }
   </style>
 </head>
-<header><div class=container><div class=header-content><a class=site-name href=/ >Image to PDF Converter</a></div></div></header><div class=container><div class=breadcrumbs><a href=/ >Home</a> <span>></span> <a href="https://img-to-pdf.github.io/">Image to PDF Converter</a></div></div><main class=container><section><h1>Convert Images to PDF</h1><p class=tool-description>Transform your images into professional PDF documents with our secure, browser-based converter. Your files never leave your device.<div class=tool-container><div class=controls><section class=left><div class=drop-zone id=dropZone><strong>Drag & Drop your image here</strong><p class=meta>Supports JPG, PNG, WEBP, and more</p><span class=meta>or <label for=fileInput class="btn btn-outline"style=margin:0>Select File</label></span> <input id=fileInput type=file accept=image/*></div><div><div class=field><label for=pageSize>Page Size</label> <select id=pageSize><option value=a4>A4 (210 × 297 mm)<option value=letter>Letter (216 × 279 mm)<option value=legal>Legal (216 × 356 mm)<option value=a3>A3 (297 × 420 mm)<option value=a5>A5 (148 × 210 mm)<option value=custom>Custom Size</select></div><div class=field style=display:none id=customSizeInputs><div class=row><div style=flex:1><label for=customWidth>Width (mm)</label> <input id=customWidth type=number min=1 class=small-input placeholder=210></div><div style=flex:1><label for=customHeight>Height (mm)</label> <input id=customHeight type=number min=1 class=small-input placeholder=297></div></div></div><div class=field><label for=orientation>Orientation</label> <select id=orientation><option value=portrait>Portrait<option value=landscape>Landscape</select></div><div class=field><label for=margin>Margin <span id=marginLabel>(10 mm)</span></label> <input id=margin type=range min=0 max=50 value=10><p class=field-hint>Adjust the margin around your image in the PDF</div><div class=field><label for=quality>Image Quality <span id=qualityLabel>(0.90)</span></label> <input id=quality type=range min=0.1 max=1 value=0.9 step=0.05><p class=field-hint>Higher quality results in larger file sizes</div><div class=field><label for=compression>PDF Compression</label> <select id=compression><option value=none>None (Highest Quality)<option value=medium>Medium<option value=high selected>High (Smaller File Size)</select></div><div class=field><label for=pdfTitle>PDF Title (Optional)</label> <input id=pdfTitle placeholder="Enter PDF title"><p class=field-hint>This will be set as the document title in the PDF metadata</div><div class=loading id=loadingIndicator><div class=spinner></div><p>Converting your image to PDF...</div><div class=success-message id=successMessage><p>✅ Your PDF has been successfully created! Click the download button to save it.</div><div class=actions><button class=btn id=convertBtn disabled><span>Convert to PDF</span></button> <button class="btn btn-outline"id=resetBtn><span>Reset</span></button></div></div></section><aside class=right><div class=preview-container><div class=preview><canvas height=360 id=canvas style=display:none width=640></canvas><img alt="Image preview"id=preview style=display:none><div id=previewPlaceholder><p style=color:var(--lighter-text);text-align:center>Your image preview will appear here</div><div class=meta style=display:none id=origMeta></div><div class=meta style=display:none id=newMeta></div><div style=display:flex;gap:8px;margin-top:10px><a class=btn id=downloadLink style=display:none download><span>Download PDF</span> </a><a class="btn btn-outline"id=openTab style=display:none rel=noopener target=_blank><span>Open PDF</span></a></div></div></div></aside></div></div></section><section><h2>Why Use This Image to PDF Converter?</h2><div class=privacy-container><p>Our Image to PDF Converter offers several advantages over other online tools:<div class=privacy-features><div class=feature><div class=feature-icon>🔒</div><div><h3>Complete Privacy</h3><p>Your images are processed entirely in your browser and never uploaded to any server.</div></div><div class=feature><div class=feature-icon>⚡</div><div><h3>Fast Processing</h3><p>Convert images to PDF instantly without waiting for file uploads and downloads.</div></div><div class=feature><div class=feature-icon>🎛️</div><div><h3>Full Customization</h3><p>Control page size, orientation, margins, quality, and compression settings.</div></div><div class=feature><div class=feature-icon>📱</div><div><h3>Device Compatibility</h3><p>Works on all devices - desktop, tablet, and mobile browsers.</div></div></div></div></section><div class=steps><div class=step><div class=step-number>1</div><div class=step-text>Upload Image</div></div><div class=step><div class=step-number>2</div><div class=step-text>Customize Settings</div></div><div class=step><div class=step-number>3</div><div class=step-text>Download PDF</div></div></div><section><h2>How This Image to PDF Converter Works</h2><div class=privacy-container><p>Our converter uses a simple three-step process:<ol style=padding-left:20px;margin-top:15px><li style=margin-bottom:10px><strong>Upload Your Image:</strong> Select an image file from your device or drag and drop it into the upload area.<li style=margin-bottom:10px><strong>Customize Settings:</strong> Adjust page size, orientation, margins, and quality settings to your preference.<li style=margin-bottom:10px><strong>Convert and Download:</strong> Click the convert button and download your PDF file instantly.</ol><p style=margin-top:15px>The entire process happens locally in your browser using JavaScript, ensuring your files remain private and secure.</div></section><section><h2>Your Privacy Matters</h2><div class=privacy-container><p>We take your privacy seriously. Unlike other online converters, our tool processes your images entirely in your browser using JavaScript. This means:<ul style=padding-left:20px;margin-top:15px><li style=margin-bottom:10px>Your images are never uploaded to any server<li style=margin-bottom:10px>No one else can access your files<li style=margin-bottom:10px>Your data remains 100% on your device<li style=margin-bottom:10px>The conversion happens locally with no internet connection required after page load</ul><p style=margin-top:15px>This site uses HTTPS encryption to ensure secure communication between your browser and our server during the initial page load. Once loaded, all image processing happens offline in your browser.</div></section><section><h2>Frequently Asked Questions</h2><div class=faq-container><div class=faq-item><div class=faq-question>What image formats are supported? <span>+</span></div><div class=faq-answer style=display:none>Our converter supports all common image formats including JPG, JPEG, PNG, WEBP, BMP, and GIF.</div></div><div class=faq-item><div class=faq-question>Is there a file size limit? <span>+</span></div><div class=faq-answer style=display:none>There's no specific file size limit, but very large images may take longer to process depending on your device's capabilities.</div></div><div class=faq-item><div class=faq-question>Can I convert multiple images to one PDF? <span>+</span></div><div class=faq-answer style=display:none>Currently, our tool converts one image at a time. For multiple images, you would need to convert them individually and then combine the PDFs using a separate tool.</div></div><div class=faq-item><div class=faq-question>Does this work on mobile devices? <span>+</span></div><div class=faq-answer style=display:none>Yes, our Image to PDF Converter works on all modern mobile browsers including Chrome, Safari, and Firefox on both iOS and Android devices.</div></div><div class=faq-item><div class=faq-question>Are my images stored anywhere? <span>+</span></div><div class=faq-answer style=display:none>No, your images are never stored on any server. All processing happens locally in your browser, and the files are deleted from memory once you close the page or reset the tool.</div></div><div class=faq-item><div class=faq-question>What happens if I lose internet connection during conversion? <span>+</span></div><div class=faq-answer style=display:none>Since all processing happens in your browser, you can continue to use the converter even without an internet connection after the initial page load.</div></div></div></section></main><section class="seo">
-  <h2>About This Free Image to PDF Converter</h2>
-  <p>
-    This online Image to PDF Converter is a free and secure tool that lets you easily convert images to PDF directly in your browser. 
-    Whether you want to convert <strong>JPG to PDF</strong>, <strong>PNG to PDF</strong>, <strong>WEBP to PDF</strong>, or other image formats like BMP, GIF, or TIFF, 
-    this fast converter works without uploading any files to a server. All image-to-PDF processing happens locally for complete privacy and instant results. 
-    It supports high-quality PDF creation with options to adjust size, margins, orientation, and compression. 
-    Perfect for students, professionals, and business users who need a reliable <strong>photo to PDF converter</strong>, 
-    this tool turns your pictures, screenshots, and scanned documents into professional PDF files in seconds. 
-    Use it on any device — desktop, tablet, or mobile — with no sign-up or installation required.
-  </p>
+<body class="bg-gray-50 text-gray-900 min-h-screen">
 
-  <p>
-    Convert <strong>images to PDF online</strong> free of charge, customize paper sizes like A4, Letter, or Legal, 
-    and download your converted PDF instantly. 
-    This browser-based <strong>image converter</strong> supports common use cases like converting invoices, receipts, certificates, contracts, 
-    assignments, forms, resumes, and design graphics to PDF format. 
-    It’s ideal for combining visual and document content in one portable file. 
-    Built for simplicity and security, our <strong>JPG PNG to PDF converter</strong> ensures fast results without any uploads or data tracking.
-  </p>
+  <header class="bg-white shadow">
+    <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div>
+        <a href="#" class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xl">📄</div>
+          <div>
+            <h1 class="text-lg font-semibold">Image → PDF</h1>
+            <p class="text-xs text-gray-500">Multi-image PDF conversion — runs entirely in your browser</p>
+          </div>
+        </a>
+      </div>
+      <nav class="text-sm text-gray-600">
+        <a class="mr-4" href="#features">Features</a>
+        <a class="mr-4" href="#faq">FAQ</a>
+      </nav>
+    </div>
+  </header>
 
-  <p>
-    Use our tool as a <strong>mobile photo to PDF app</strong> or <strong>desktop PDF maker</strong> — it works on Android, iPhone, Windows, macOS, and Linux. 
-    No registration, no ads, and no watermarks — just a clean and powerful <strong>online PDF creator</strong>. 
-    It’s compatible with all browsers, including Chrome, Safari, Firefox, Edge, and Opera. 
-    Convert and save images for educational, personal, or business use. 
-    Whether you need to turn photos, documents, or design mockups into sharable PDFs, this converter handles it all instantly and offline.
-  </p>
+  <main class="container mx-auto px-4 py-8">
+    <section class="grid md:grid-cols-3 gap-6">
+      <!-- Left: controls -->
+      <div class="md:col-span-2 space-y-4">
+        <div id="dropZone" class="dropzone rounded-lg border-2 border-dashed border-gray-200 p-6 text-center bg-white">
+          <div class="flex flex-col md:flex-row items-center justify-center gap-4">
+            <div class="w-full md:w-2/3">
+              <strong class="block text-lg">Drag & drop images here</strong>
+              <p class="text-sm text-gray-500 mt-1">Or use the controls below. Supports JPG, PNG, WEBP, BMP, GIF (first frame).</p>
+            </div>
+            <div class="flex gap-2">
+              <label class="bg-white border rounded px-4 py-2 cursor-pointer hover:bg-gray-50 shadow-sm">
+                Select files
+                <input id="fileInput" type="file" accept="image/*" multiple class="hidden">
+              </label>
+              <button id="importUrlBtn" class="bg-indigo-600 text-white rounded px-4 py-2 hover:bg-indigo-700">Import by URL</button>
+              <button id="resetBtn" class="bg-white border rounded px-4 py-2 hover:bg-gray-50">Reset</button>
+            </div>
+          </div>
+        </div>
 
-  <p>
-    Keywords: image to pdf, jpg to pdf, png to pdf, webp to pdf, convert image to pdf, convert photo to pdf, 
-    free pdf converter, online pdf converter, secure pdf converter, browser pdf converter, fast pdf conversion, 
-    image to document, picture to pdf, convert png to pdf, jpeg to pdf, jpg image to pdf, pdf from images, 
-    batch image to pdf, merge images to pdf, photo to document converter, make pdf from pictures, 
-    convert webp to pdf, create pdf from image, digital pdf converter, offline pdf converter, 
-    convert image locally, privacy pdf converter, cross-platform pdf converter, instant pdf conversion, 
-    no upload pdf converter, a4 pdf converter, mobile pdf tool, laptop pdf maker, client-side pdf generator, 
-    pdf compression, pdf orientation, pdf quality, pdf margin, pdf size, pdf metadata, image optimization, 
-    convert screenshots to pdf, combine photos to pdf, fast browser converter, online tool for pdf, 
-    pdf converter website, secure browser tool, instant file converter, no registration pdf tool, 
-    convert multiple images, image compression, lightweight pdf converter, free web converter, 
-    simple image to pdf, convert diagram to pdf, illustration to pdf, resume to pdf, scanned document to pdf, 
-    receipt to pdf, invoice to pdf, form to pdf, academic pdf converter, student pdf tool, office pdf maker, 
-    privacy-focused converter, fast jpg converter, convert web images, desktop photo to pdf, 
-    android image to pdf, iphone image to pdf, web-based pdf converter, best online pdf converter, 
-    open source pdf converter, github pdf converter, minimal pdf app, offline image converter, 
-    free file converter, convert image securely, high quality pdf, fast converter online, 
-    convert and download pdf, pdf conversion utility, pdf converter software, web app converter, 
-    web image to pdf, cloud-free pdf tool, privacy assured converter, no tracking pdf converter, 
-    reliable online converter, photo to pdf for printing, browser-based pdf app, 
-    modern image converter, fast secure pdf, professional pdf converter, create digital pdfs, 
-    graphic to pdf, convert art to pdf, design to pdf, convert logo to pdf, picture to document tool, 
-    pdf conversion service, best free converter, one click image to pdf, local processing pdf, 
-    instant converter tool, convert image formats, pdf quality settings, online pdf generation, 
-    private pdf processing, convert on browser, free secure converter, top pdf tool, 
-    safe file converter, easy image to pdf, lightweight browser app, online conversion website, 
-    universal pdf converter, secure offline pdf tool, privacy protected converter, 
-    no server upload pdf, convert and download instantly, free converter for students, 
-    pdf utility for business, privacy-first pdf converter.
-  </p>
-</section>
-<footer><div class=container><p>© 2023 Image to PDF Converter. All rights reserved.<p>This tool processes your images locally in your browser for maximum privacy and security.</div></footer>
+        <!-- queue -->
+        <div class="bg-white rounded-lg shadow-sm p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-sm font-medium">Image Queue</h2>
+            <p class="text-xs text-gray-500">Drag to reorder</p>
+          </div>
+          <div id="queue" class="space-y-3" style="min-height:72px"></div>
+        </div>
 
-  <script src="main.js"></script>
-  
+        <!-- settings -->
+        <div class="bg-white rounded-lg shadow-sm p-4 grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium">Page Size</label>
+            <select id="pageSize" class="mt-1 block w-full border rounded p-2">
+              <option value="a4">A4 (210 × 297 mm)</option>
+              <option value="letter">Letter (216 × 279 mm)</option>
+              <option value="legal">Legal (216 × 356 mm)</option>
+              <option value="a3">A3 (297 × 420 mm)</option>
+              <option value="custom">Custom</option>
+            </select>
+            <div id="customSize" class="mt-2 hidden grid grid-cols-2 gap-2">
+              <input id="customWidth" type="number" min="1" placeholder="Width mm" class="border rounded p-2" />
+              <input id="customHeight" type="number" min="1" placeholder="Height mm" class="border rounded p-2" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">Orientation</label>
+            <select id="orientation" class="mt-1 block w-full border rounded p-2">
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">Margins (mm) <span id="marginLabel" class="text-xs text-gray-500">(10)</span></label>
+            <input id="margin" type="range" min="0" max="50" value="10" class="w-full" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">Image Scale</label>
+            <select id="scaleMode" class="mt-1 block w-full border rounded p-2">
+              <option value="fit">Fit (contain, maintain aspect)</option>
+              <option value="cover">Cover (crop to fill)</option>
+              <option value="actual">Actual size (no scaling)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">Image Quality <span id="qualityLabel" class="text-xs text-gray-500">(0.9)</span></label>
+            <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.9" class="w-full" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">PDF Compression</label>
+            <select id="compression" class="mt-1 block w-full border rounded p-2">
+              <option value="none">None (best quality)</option>
+              <option value="medium">Medium</option>
+              <option value="high">High (smaller file)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">PDF Title (optional)</label>
+            <input id="pdfTitle" placeholder="Document title" class="mt-1 border rounded p-2 w-full" />
+          </div>
+
+        </div>
+
+        <div class="flex gap-3 mt-4">
+          <button id="convertBtn" class="bg-indigo-600 text-white px-5 py-2 rounded hover:bg-indigo-700 disabled:opacity-60" disabled>Convert to PDF</button>
+          <a id="downloadLink" class="hidden bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700" download>Download PDF</a>
+          <button id="openBtn" class="hidden bg-white border px-5 py-2 rounded">Open PDF</button>
+          <div id="status" class="ml-4 text-sm text-gray-500 self-center"></div>
+        </div>
+
+      </div>
+
+      <!-- Right: preview + help -->
+      <aside class="space-y-4">
+        <div class="bg-white rounded-lg shadow-sm p-4">
+          <h3 class="font-medium mb-2">Preview</h3>
+          <div id="previewArea" class="h-72 border border-dashed border-gray-200 rounded flex items-center justify-center bg-gray-50">
+            <p class="text-sm text-gray-500">Add images to see thumbnails and settings preview</p>
+          </div>
+        </div>
+
+        <div id="features" class="bg-white rounded-lg shadow-sm p-4">
+          <h3 class="font-medium mb-2">Why use this</h3>
+          <ul class="text-sm text-gray-600 list-disc pl-5 space-y-1">
+            <li>Runs entirely in your browser — your images never leave your device.</li>
+            <li>Combine multiple images into one PDF and reorder pages.</li>
+            <li>Export high-quality PDFs with metadata support.</li>
+          </ul>
+        </div>
+
+      </aside>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="mt-8 bg-white p-6 rounded-lg shadow-sm">
+      <h2 class="text-lg font-semibold mb-3">FAQ</h2>
+      <div class="space-y-3 text-sm text-gray-700">
+        <div>
+          <strong>Are my images uploaded?</strong>
+          <p class="text-gray-500">No — all conversion happens locally in your browser.</p>
+        </div>
+        <div>
+          <strong>Can I convert many images into one PDF?</strong>
+          <p class="text-gray-500">Yes — add multiple images and reorder them before converting.</p>
+        </div>
+        <div>
+          <strong>Is there a file size limit?</strong>
+          <p class="text-gray-500">Only limited by your device memory and browser. Very large images may be slow.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="mt-8 text-xs text-gray-500">
+      © <span id="year"></span> Image → PDF Converter • Client-side only • No uploads
+    </footer>
+  </main>
+
+<script>
+  // Utilities & constants
+  const mmToPts = mm => (mm * 72) / 25.4; // 1 pt = 1/72 inch, 1 inch = 25.4 mm
+  const sizesMM = {
+    a4: {w:210, h:297},
+    letter: {w:216, h:279},
+    legal: {w:216, h:356},
+    a3: {w:297, h:420}
+  };
+
+  // DOM
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const queueEl = document.getElementById('queue');
+  const previewArea = document.getElementById('previewArea');
+  const convertBtn = document.getElementById('convertBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const importUrlBtn = document.getElementById('importUrlBtn');
+  const downloadLink = document.getElementById('downloadLink');
+  const openBtn = document.getElementById('openBtn');
+  const status = document.getElementById('status');
+
+  // Settings
+  const pageSizeSel = document.getElementById('pageSize');
+  const orientationSel = document.getElementById('orientation');
+  const marginInput = document.getElementById('margin');
+  const marginLabel = document.getElementById('marginLabel');
+  const qualityInput = document.getElementById('quality');
+  const qualityLabel = document.getElementById('qualityLabel');
+  const compressionSel = document.getElementById('compression');
+  const scaleModeSel = document.getElementById('scaleMode');
+  const pdfTitleInput = document.getElementById('pdfTitle');
+  const customSize = document.getElementById('customSize');
+  const customWidth = document.getElementById('customWidth');
+  const customHeight = document.getElementById('customHeight');
+
+  // State
+  let images = []; // {id, file, dataUrl, name, width, height}
+  let lastPdfBlobUrl = null;
+
+  // initialize year
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // Helpers
+  function readFileAsDataURL(file) {
+    return new Promise((res, rej) => {
+      const fr = new FileReader();
+      fr.onload = () => res(fr.result);
+      fr.onerror = rej;
+      fr.readAsDataURL(file);
+    });
+  }
+
+  async function fetchImageAsFile(url) {
+    const resp = await fetch(url, {mode:'cors'});
+    if (!resp.ok) throw new Error('Could not fetch image: '+resp.status);
+    const blob = await resp.blob();
+    // derive filename
+    const name = (new URL(url)).pathname.split('/').pop() || 'image';
+    const ext = blob.type.split('/').pop();
+    return new File([blob], name + (name.includes('.') ? '' : '.'+ext), {type: blob.type});
+  }
+
+  function createQueueItem(imgObj) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex items-center gap-3 p-2 rounded border border-gray-100 bg-gray-50';
+    wrapper.dataset.id = imgObj.id;
+
+    const thumb = document.createElement('img');
+    thumb.src = imgObj.dataUrl;
+    thumb.className = 'thumb';
+    thumb.alt = imgObj.name;
+
+    const meta = document.createElement('div');
+    meta.className = 'flex-1 min-w-0';
+    meta.innerHTML = `<div class="text-sm font-medium truncate">${escapeHtml(imgObj.name)}</div>
+      <div class="text-xs text-gray-500"> ${imgObj.width} × ${imgObj.height}px</div>`;
+
+    const actions = document.createElement('div');
+    actions.className = 'flex gap-2';
+    const up = document.createElement('button'); up.className='p-1'; up.innerHTML='⬆️'; up.title='Move up';
+    const down = document.createElement('button'); down.className='p-1'; down.innerHTML='⬇️'; down.title='Move down';
+    const remove = document.createElement('button'); remove.className='p-1 text-red-500'; remove.innerHTML='🗑️'; remove.title='Remove';
+    actions.append(up, down, remove);
+
+    up.addEventListener('click', ()=> moveItem(imgObj.id, -1));
+    down.addEventListener('click', ()=> moveItem(imgObj.id, +1));
+    remove.addEventListener('click', ()=> removeItem(imgObj.id));
+
+    wrapper.append(thumb, meta, actions);
+    return wrapper;
+  }
+
+  function renderQueue() {
+    queueEl.innerHTML = '';
+    if (images.length === 0) {
+      previewArea.innerHTML = '<p class="text-sm text-gray-500">Add images to see thumbnails and settings preview</p>';
+      convertBtn.disabled = true;
+      return;
+    }
+    const frag = document.createDocumentFragment();
+    images.forEach(img => frag.appendChild(createQueueItem(img)));
+    queueEl.appendChild(frag);
+    convertBtn.disabled = false;
+    // preview area: show first image large
+    const first = images[0];
+    previewArea.innerHTML = '';
+    const imgTag = document.createElement('img');
+    imgTag.src = first.dataUrl;
+    imgTag.className = 'max-h-full max-w-full object-contain';
+    previewArea.appendChild(imgTag);
+  }
+
+  // reorder helpers
+  function moveItem(id, dir) {
+    const idx = images.findIndex(i => i.id === id);
+    if (idx === -1) return;
+    const newIdx = Math.max(0, Math.min(images.length -1, idx + dir));
+    if (newIdx === idx) return;
+    const [item] = images.splice(idx,1);
+    images.splice(newIdx,0,item);
+    renderQueue();
+  }
+  function removeItem(id) {
+    images = images.filter(i => i.id !== id);
+    renderQueue();
+  }
+
+  function escapeHtml(unsafe) {
+    return unsafe.replace(/[&<"']/g, function(m) {
+      return {'&':'&amp;','<':'&lt;','"':'&quot;',"'":'&#039;'}[m];
+    });
+  }
+
+  // file handling
+  fileInput.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files || []);
+    await addFiles(files);
+    fileInput.value = '';
+  });
+
+  dropZone.addEventListener('dragover', (e)=> {
+    e.preventDefault();
+    dropZone.classList.add('ring-2','ring-indigo-300');
+  });
+  ['dragleave','dragend','drop'].forEach(ev => dropZone.addEventListener(ev, (e)=>{
+    dropZone.classList.remove('ring-2','ring-indigo-300');
+  }));
+  dropZone.addEventListener('drop', async (e)=> {
+    e.preventDefault();
+    const dt = e.dataTransfer;
+    const files = Array.from(dt.files || []);
+    await addFiles(files);
+  });
+
+  async function addFiles(files) {
+    status.textContent = 'Processing files...';
+    for (const file of files) {
+      if (!file.type.startsWith('image/')) continue;
+      try {
+        const dataUrl = await readFileAsDataURL(file);
+        const img = await loadImage(dataUrl);
+        images.push({
+          id: cryptoRandomId(),
+          file,
+          dataUrl,
+          name: file.name || 'image',
+          width: img.width,
+          height: img.height,
+        });
+      } catch (err) {
+        console.error('Error reading file', err);
+      }
+    }
+    status.textContent = '';
+    renderQueue();
+  }
+
+  // import by URL
+  importUrlBtn.addEventListener('click', async ()=>{
+    const url = prompt('Enter image URL (CORS-enabled):');
+    if (!url) return;
+    status.textContent = 'Fetching image...';
+    try {
+      const file = await fetchImageAsFile(url);
+      await addFiles([file]);
+    } catch (err) {
+      alert('Failed to fetch image. Make sure the URL is direct to an image and CORS is allowed.\n\n' + err.message);
+      console.error(err);
+    } finally { status.textContent = ''; }
+  });
+
+  // reset
+  resetBtn.addEventListener('click', ()=>{
+    if (!confirm('Reset and remove all images?')) return;
+    images = [];
+    renderQueue();
+    if (lastPdfBlobUrl) {
+      URL.revokeObjectURL(lastPdfBlobUrl);
+      lastPdfBlobUrl = null;
+    }
+    downloadLink.classList.add('hidden');
+    openBtn.classList.add('hidden');
+    status.textContent = '';
+  });
+
+  // page size UI toggle
+  pageSizeSel.addEventListener('change', ()=>{
+    customSize.classList.toggle('hidden', pageSizeSel.value !== 'custom');
+  });
+
+  marginInput.addEventListener('input', ()=> marginLabel.textContent = `(${marginInput.value})`);
+  qualityInput.addEventListener('input', ()=> qualityLabel.textContent = `(${qualityInput.value})`;
+
+  // convert -> PDF
+  convertBtn.addEventListener('click', async ()=> {
+    if (images.length === 0) return alert('Add images first.');
+    convertBtn.disabled = true;
+    status.textContent = 'Preparing PDF...';
+    try {
+      const pdfBytes = await buildPdf();
+      const blob = new Blob([pdfBytes], {type: 'application/pdf'});
+      if (lastPdfBlobUrl) URL.revokeObjectURL(lastPdfBlobUrl);
+      lastPdfBlobUrl = URL.createObjectURL(blob);
+      downloadLink.href = lastPdfBlobUrl;
+      downloadLink.download = (pdfTitleInput.value?.trim() || 'images') + '.pdf';
+      downloadLink.classList.remove('hidden');
+      openBtn.classList.remove('hidden');
+      openBtn.onclick = ()=> window.open(lastPdfBlobUrl, '_blank');
+      status.textContent = 'PDF ready — click Download.';
+    } catch (err) {
+      console.error(err);
+      alert('Failed to build PDF: ' + err.message);
+      status.textContent = 'Conversion failed.';
+    } finally {
+      convertBtn.disabled = false;
+    }
+  });
+
+  // pdf builder using pdf-lib
+  async function buildPdf() {
+    const { PDFDocument, StandardFonts } = PDFLib;
+    const pdfDoc = await PDFDocument.create();
+
+    // metadata
+    const title = pdfTitleInput.value?.trim();
+    if (title) pdfDoc.setTitle(title);
+
+    // page size
+    let wmm, hmm;
+    if (pageSizeSel.value === 'custom') {
+      wmm = Number(customWidth.value) || 210;
+      hmm = Number(customHeight.value) || 297;
+    } else {
+      const s = sizesMM[pageSizeSel.value] || sizesMM.a4;
+      wmm = s.w; hmm = s.h;
+    }
+    let pageW = mmToPts(wmm);
+    let pageH = mmToPts(hmm);
+    if (orientationSel.value === 'landscape') [pageW, pageH] = [pageH, pageW];
+
+    const marginPts = mmToPts(Number(marginInput.value || 10));
+
+    // for each image in order, add page and embed image
+    for (let i = 0; i < images.length; i++) {
+      const img = images[i];
+      // draw into canvas to apply quality/compression and scale
+      const targetW = Math.max(1, pageW - marginPts*2);
+      const targetH = Math.max(1, pageH - marginPts*2);
+
+      // load image as HTMLImageElement
+      const htmlImg = await loadImage(img.dataUrl);
+      // compute draw size based on scaleMode
+      const scaleMode = scaleModeSel.value;
+      let drawW = htmlImg.width, drawH = htmlImg.height;
+
+      // compute scale factors working in pixels: we treat canvas pixel sizes relative to pdf points by 1:1 ratio because we'll embed the image bytes directly
+      // create canvas sized to available area (in pixels) but maintain aspect ratio
+      // We'll use a scaling factor so large images don't kill memory — fit to target points up to 2000px.
+      const maxCanvasDim = 2800; // cap to avoid insane memory
+      const availW = targetW; const availH = targetH;
+
+      if (scaleMode === 'actual') {
+        // keep actual pixel size but cap
+        drawW = Math.min(htmlImg.width, maxCanvasDim);
+        drawH = Math.min(htmlImg.height, maxCanvasDim);
+      } else {
+        // compute scale to fit or cover to available
+        const sx = availW / htmlImg.width;
+        const sy = availH / htmlImg.height;
+        if (scaleMode === 'fit') {
+          const s = Math.min(sx, sy);
+          drawW = Math.round(htmlImg.width * s);
+          drawH = Math.round(htmlImg.height * s);
+        } else if (scaleMode === 'cover') {
+          const s = Math.max(sx, sy);
+          drawW = Math.round(htmlImg.width * s);
+          drawH = Math.round(htmlImg.height * s);
+        }
+        // cap
+        const cap = Math.max(600, Math.min(maxCanvasDim, Math.max(drawW, drawH)));
+        if (drawW > cap || drawH > cap) {
+          const scale = cap / Math.max(drawW, drawH);
+          drawW = Math.round(drawW * scale);
+          drawH = Math.round(drawH * scale);
+        }
+      }
+
+      // draw to canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, drawW);
+      canvas.height = Math.max(1, drawH);
+      const ctx = canvas.getContext('2d');
+      // background white for transparency
+      ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      let dx = 0, dy = 0, dw = canvas.width, dh = canvas.height;
+      if (scaleMode === 'cover') {
+        // cover: center crop
+        const sx = htmlImg.width / drawW;
+        const sy = htmlImg.height / drawH;
+        // draw image scaled and cropped
+        // But simpler: draw scaled to fill canvas while preserving aspect using drawImage with source crop
+        const scale = Math.max(canvas.width / htmlImg.width, canvas.height / htmlImg.height);
+        const sw = Math.round(canvas.width / scale);
+        const sh = Math.round(canvas.height / scale);
+        const sx0 = Math.round((htmlImg.width - sw) / 2);
+        const sy0 = Math.round((htmlImg.height - sh) / 2);
+        ctx.drawImage(htmlImg, sx0, sy0, sw, sh, 0, 0, canvas.width, canvas.height);
+      } else if (scaleMode === 'fit' || scaleMode === 'actual') {
+        // center with blank space
+        const ratio = Math.min(canvas.width / htmlImg.width, canvas.height / htmlImg.height);
+        const iw = Math.round(htmlImg.width * ratio);
+        const ih = Math.round(htmlImg.height * ratio);
+        dx = Math.round((canvas.width - iw)/2);
+        dy = Math.round((canvas.height - ih)/2);
+        dw = iw; dh = ih;
+        ctx.drawImage(htmlImg, 0, 0, htmlImg.width, htmlImg.height, dx, dy, dw, dh);
+      } else {
+        ctx.drawImage(htmlImg, 0, 0, canvas.width, canvas.height);
+      }
+
+      // image quality
+      const quality = Number(qualityInput.value || 0.9);
+      const compression = compressionSel.value; // not used directly because we use JPEG quality
+      // prefer JPEG for smaller size
+      let mime = 'image/jpeg';
+      let dataUrl = canvas.toDataURL(mime, quality);
+
+      // convert dataURL to Uint8Array
+      const u8 = dataURLToUint8Array(dataUrl);
+
+      // embed
+      let embeddedImage;
+      try {
+        embeddedImage = await pdfDoc.embedJpg(u8);
+      } catch (e) {
+        // fallback to png embedding
+        const pngData = canvas.toDataURL('image/png');
+        const u8png = dataURLToUint8Array(pngData);
+        embeddedImage = await pdfDoc.embedPng(u8png);
+      }
+      const imgDims = embeddedImage.scale(1);
+
+      // create page and draw image centered within margins
+      const page = pdfDoc.addPage([pageW, pageH]);
+      // center area
+      const drawScaleX = (targetW) / imgDims.width;
+      const drawScaleY = (targetH) / imgDims.height;
+      let drawScale;
+      if (scaleMode === 'fit') drawScale = Math.min(drawScaleX, drawScaleY);
+      else if (scaleMode === 'cover') drawScale = Math.max(drawScaleX, drawScaleY);
+      else if (scaleMode === 'actual') drawScale = 1;
+      else drawScale = Math.min(drawScaleX, drawScaleY);
+
+      const finalW = imgDims.width * drawScale;
+      const finalH = imgDims.height * drawScale;
+
+      const x = (pageW - finalW) / 2;
+      const y = (pageH - finalH) / 2;
+
+      page.drawImage(embeddedImage, {
+        x, y,
+        width: finalW,
+        height: finalH
+      });
+
+      // small optional: add page number or metadata etc.
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    return pdfBytes;
+  }
+
+  // small helpers
+  function dataURLToUint8Array(dataURL) {
+    const base64 = dataURL.split(',')[1];
+    const raw = atob(base64);
+    const u8 = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; ++i) u8[i] = raw.charCodeAt(i);
+    return u8;
+  }
+
+  function loadImage(dataOrUrl) {
+    return new Promise((res, rej) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => res(img);
+      img.onerror = (e) => rej(new Error('Image load error'));
+      img.src = dataOrUrl;
+    });
+  }
+
+  function cryptoRandomId() {
+    return Math.random().toString(36).slice(2, 9);
+  }
+
+  // initialize SortableJS on the queue for drag reorder
+  const sortable = new Sortable(queueEl, {
+    animation: 150,
+    onEnd: (evt) => {
+      // reorder images array accordingly
+      const ids = Array.from(queueEl.children).map(ch => ch.dataset.id);
+      images.sort((a,b)=> ids.indexOf(a.id) - ids.indexOf(b.id));
+      renderQueue();
+    }
+  });
+
+  // small CORS note: importing images by URL requires the remote server to allow cross-origin image access.
+  // You can use images hosted on Imgur, GitHub raw, or other CORS-enabled hosts.
+
+  // helper to add a single image File object programmatically
+  async function addImageFile(file) {
+    await addFiles([file]);
+  }
+
+  // expose addImageFile (useful for later embedding or other pages)
+  window.addImageFile = addImageFile;
+
+  // done
+  renderQueue();
+</script>
 </body>
 </html>
