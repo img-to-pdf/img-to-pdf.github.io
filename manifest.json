@@ -1,0 +1,16 @@
+{
+  "name": "Image to PDF Converter",
+  "short_name": "Img→PDF",
+  "description": "Convert multiple images (JPG, PNG, WEBP, etc.) into a single PDF file — fully offline, secure, and free.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8f9fa",
+  "theme_color": "#4f46e5",
+  "categories": ["utilities", "tools", "productivity"],
+  "lang": "en",
+  "dir": "ltr",
+  "id": "img-to-pdf.github.io",
+  "prefer_related_applications": false
+}
